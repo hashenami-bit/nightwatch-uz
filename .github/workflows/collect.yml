@@ -1,0 +1,30 @@
+name: collect
+
+# Real collection is OFF until the Module Leader's written approval.
+# To switch it on after approval (and record it in DECISIONS.md):
+#   1. add the repository secret DATABASE_URL (hosted PostgreSQL)
+#   2. set the repository variable COLLECTION_ENABLED to true
+#   3. remove the "#" in front of the schedule lines below
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '7,37 * * * *'        # every hour at :07 and :37 (off the start of the hour)
+  #   - cron: '10,25,40 12 * * *'   # extra runs at 17:10, 17:25, 17:40 Tashkent time
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --no-dev
+      - name: Run collector
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
+        run: uv run python -m nightwatch.collect --trigger schedule
