@@ -66,3 +66,16 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Expected split counts** (k = max(5, round(0.2 × N))): from 29 Oct there are 33 calendar nights.
   At 90% about N = 30 → 24 training / 6 test; at 70% about N = 23 → 18 training / 5 test. The minimum of
   18 complete nights is reached even at about 55% completeness.
+
+## D007 · 2026-10-28 · Assessed collection switched on
+
+- Hosted database: Neon PostgreSQL (free plan, AWS US East 2). Its connection string is only in the
+  GitHub secret `DATABASE_URL`; the repository variable `COLLECTION_ENABLED` is `true`.
+- Schedule switched on in commit 941b219 (`.github/workflows/collect.yml`). Manual runs are stored
+  with trigger `manual`, scheduled runs with `schedule`.
+- **First real run:** 28 Oct 2026 06:46 UTC (11:46 Tashkent), manual, GitHub run 40645825467:
+  HTTP 200, 10 of 10 points stored, database run_id 1. The whole job took 22 seconds (1 billed minute).
+- **First counted night: 29 Oct 2026**, the first night whose whole day is collected (D006).
+- Actions minutes: about 51 runs × 1 minute per day ≈ 1,530 of the 2,000 free minutes per month.
+  Checked again after the first full day.
+- Next check: coverage of the first three nights (29, 30, 31 Oct), reported at Checkpoint 1.
