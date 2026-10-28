@@ -9,9 +9,30 @@ conditions and it is not a frost warning.
 
 ## Status
 
-**Pre-approval. Real collection is switched off.** Until the Module Leader gives written
-approval, the code is built and tested with synthetic data only (`tests/fixtures`).
+**Approved on 28 Oct 2026** by the Module Leader as a small exploratory study
+(`docs/approval/2026-10-28-module-leader-approval.md`). Data cut-off fixed before collection (`DECISIONS.md`, D006):
+last included night **30 Nov 2026**, final collection **1 Dec 2026 08:15** Asia/Tashkent. Real collection
+starts once the hosted database is connected. Until then the
+code is tested with synthetic data only (`tests/fixtures`).
 See `DECISIONS.md` for the approval record and every later change.
+
+## Evaluation controls (from the approval)
+
+The full rules are in `docs/evaluation_protocol.md`. In short:
+
+- The final result is a **retrospective chronological hold-out evaluation**: the model is chosen after
+  collection and its test predictions are made from stored 18:00 snapshots. They were not issued on
+  the original evenings.
+- While collecting, development analysis uses only the first 13 complete nights. At the cut-off the
+  split is computed once, the model is chosen and fitted on training nights only, and the protocol is
+  frozen (git tag `protocol-frozen`) before any test result is opened.
+- Q1 (model against persistence) is the main comparison; Q2 and Q3 are exploratory. 5–7 test nights
+  support exploratory conclusions only. Real calendar dates are kept: missing nights are never closed
+  up, and the variance and bootstrap blocks never cross a gap.
+- The data cut-off (last included night and final collection time) is fixed before collection starts
+  and never moved because of results.
+- Coverage of the first three nights is measured and reported. Failed and missing runs are kept.
+  Back-filled, manual and synthetic records are kept apart.
 
 ## What is built so far
 

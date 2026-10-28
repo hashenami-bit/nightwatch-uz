@@ -1,5 +1,5 @@
 """Fixed settings for the NightWatch UZ collector (proposal v2 + v3)."""
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
 
@@ -23,6 +23,11 @@ HOURLY_MINUTES = (7, 37)
 EXTRA_SLOTS_UTC = ((12, 10), (12, 25), (12, 40))
 
 REQUEST_TIMEOUT_S = 30
+
+# Data cut-off (DECISIONS.md D006, fixed before collection): last included night 30 Nov 2026,
+# final collection 1 Dec 2026 08:15 Asia/Tashkent = 03:15 UTC. Never moved because of results.
+FINAL_COLLECTION_UTC = datetime(2026, 12, 1, 3, 15, tzinfo=timezone.utc)
+
 MAX_ATTEMPTS = 2
 RETRY_WAIT_S = 10
 

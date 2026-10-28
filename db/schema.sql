@@ -108,14 +108,20 @@ CREATE TABLE IF NOT EXISTS nights (
     features_cutoff_utc     timestamptz NOT NULL,   -- 18:00 local on day D
     snapshot_run_id         bigint REFERENCES collection_runs (run_id),
     snapshot_received_at    timestamptz,
+    -- daytime features: live values for day D received before 18:00 (v3 section 3)
+    day_max_temp_c          numeric(5,2),           -- 07:00-16:00, at least 7 of 10 hours
+    morning_min_temp_c      numeric(5,2),           -- 00:00-07:00, at least 6 of 8 hours
+    afternoon_cloud_pct     numeric(5,2) CHECK (afternoon_cloud_pct BETWEEN 0 AND 100),  -- 12:00-16:00, at least 4 of 5
     target_min_c            numeric(5,2),
     n_live_hours            smallint NOT NULL CHECK (n_live_hours BETWEEN 0 AND 12),
     is_complete             boolean NOT NULL,
     calendar_night_complete boolean,
-    split                   text CHECK (split IN ('train', 'validation', 'test')),
+    split                   text CHECK (split IN ('train', 'test')),   -- no validation split (v3)
     UNIQUE (location_id, night_date),
     CHECK (NOT is_complete OR (n_live_hours = 12 AND target_min_c IS NOT NULL
-                               AND snapshot_run_id IS NOT NULL))
+                               AND snapshot_run_id IS NOT NULL
+                               AND day_max_temp_c IS NOT NULL AND morning_min_temp_c IS NOT NULL
+                               AND afternoon_cloud_pct IS NOT NULL))
 );
 
 -- Small user input: a low temperature a user measured. No personal data.

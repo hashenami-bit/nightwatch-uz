@@ -1,7 +1,7 @@
 """Unit tests that need no database. All data here is synthetic."""
 from datetime import datetime, timedelta, timezone
 
-from nightwatch import collector, config
+from nightwatch import collect, collector, config
 from nightwatch.validation import check_row
 from tests.fixtures.synthetic import make_payload
 
@@ -57,3 +57,8 @@ def test_check_row_catches_dew_point_above_temperature():
     assert check_row({"temperature_c": 5.0, "dew_point_c": 7.0})
     assert check_row({"temperature_c": 5.0, "dew_point_c": 4.0}) == []
     assert check_row({"temperature_c": None}) == ["temperature_c missing"]
+
+
+def test_collection_stops_after_the_fixed_cut_off():
+    assert not collect.collection_closed(datetime(2026, 12, 1, 3, 15, tzinfo=UTC))   # 08:15 Tashkent: last moment
+    assert collect.collection_closed(datetime(2026, 12, 1, 3, 16, tzinfo=UTC))

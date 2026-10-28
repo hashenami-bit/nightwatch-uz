@@ -16,6 +16,11 @@ import requests
 from . import collector, config
 
 
+def collection_closed(now: datetime) -> bool:
+    """True after the fixed final collection time; nothing is stored after it."""
+    return now > config.FINAL_COLLECTION_UTC
+
+
 def dry_run() -> int:
     """Fetch once and validate, print counts only. Writes nothing anywhere."""
     status, text, received_at, attempts, error = collector.fetch(requests.Session(), collector.build_params())
@@ -41,7 +46,10 @@ def main(argv=None) -> int:
     if args.dry_run:
         return dry_run()
     if os.environ.get("COLLECTION_ENABLED") != "true":
-        print("Collection is switched off until written approval (COLLECTION_ENABLED is not 'true').")
+        print("Collection is switched off (COLLECTION_ENABLED is not 'true').")
+        return 0
+    if collection_closed(datetime.now(timezone.utc)):
+        print(f"Collection closed at the data cut-off {config.FINAL_COLLECTION_UTC:%Y-%m-%d %H:%M}Z (D006).")
         return 0
     dsn = os.environ.get("DATABASE_URL")
     if not dsn:
