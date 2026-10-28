@@ -20,4 +20,4 @@ packages = ["src/nightwatch"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+pythonpath = [".", "src"]   # src too: macOS can hide the editable .pth file, which Python then skips

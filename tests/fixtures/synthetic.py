@@ -12,7 +12,7 @@ from nightwatch import config
 
 
 def make_payload(received_at: datetime, temp: float = 10.0, overrides: dict | None = None) -> list:
-    """One item per monitored point, hourly from (hour - 2h) to (hour + 23h)."""
+    """One item per monitored point, hourly from (hour - PAST_HOURS) to (hour + 23h)."""
     overrides = overrides or {}
     hour = received_at.replace(minute=0, second=0, microsecond=0)
     times = [hour + timedelta(hours=h) for h in range(-config.PAST_HOURS, config.FORECAST_HOURS)]

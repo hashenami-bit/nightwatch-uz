@@ -10,7 +10,7 @@ from datetime import datetime, timedelta, timezone
 import psycopg
 import pytest
 
-from nightwatch import collector, db
+from nightwatch import collector, config, db
 from tests.fixtures.synthetic import FakeResponse, FakeSession, make_payload
 
 UTC = timezone.utc
@@ -87,7 +87,7 @@ def test_failed_request_is_still_logged(conn, monkeypatch):
 
 def test_invalid_value_goes_to_quality_log_not_observations(conn):
     sent = datetime(2026, 11, 2, 10, 7, tzinfo=UTC)
-    bad = {2: {("hourly", "temperature_2m", 2): -80.0}}       # hour 10:00 for Samarkand, impossible
+    bad = {2: {("hourly", "temperature_2m", config.PAST_HOURS): -80.0}}   # hour 10:00 for Samarkand, impossible
     collector.run_once(conn, trigger="test", session=FakeSession(FakeResponse(200, json.dumps(make_payload(sent, overrides=bad)))), clock=clock_at(sent))
     issues = conn.execute("SELECT location_id, rule_name, action FROM data_quality_log").fetchall()
     assert (2, "hourly_values", "rejected") in issues

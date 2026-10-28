@@ -14,7 +14,7 @@ VARIABLES = {
     "pressure_msl": "pressure_hpa",
 }
 
-PAST_HOURS = 2          # enough to capture hour H from a run at H+1:07
+PAST_HOURS = 4          # hour H from a run at H+1:07, and the 3-hour trend before the snapshot
 FORECAST_HOURS = 24     # provider forecast saved for the next 24 hours
 LIVE_WINDOW = timedelta(minutes=75)   # live value for hour H: received in [H, H + 75 min]
 
