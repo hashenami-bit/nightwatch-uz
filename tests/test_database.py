@@ -106,3 +106,8 @@ def test_database_refuses_a_live_value_outside_the_window(conn):
                         VALUES (1, %s, '2026-11-02 09:00+00', '2026-11-02 12:00+00', true, 5, repeat('0', 64))""",
                      (run_id,))
     conn.rollback()
+
+
+def test_schema_can_be_applied_again_without_changes(conn):
+    db.apply_schema(conn)              # the collector applies it at the start of every real run
+    assert count(conn, "locations") == 10

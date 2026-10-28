@@ -1,15 +1,13 @@
 name: collect
 
-# Real collection is OFF until the Module Leader's written approval.
-# To switch it on after approval (and record it in DECISIONS.md):
-#   1. add the repository secret DATABASE_URL (hosted PostgreSQL)
-#   2. set the repository variable COLLECTION_ENABLED to true
-#   3. remove the "#" in front of the schedule lines below
+# Real collection: approved 28 Oct 2026 (DECISIONS.md D005), switched on 28 Oct 2026 (D007).
+# Needs the repository secret DATABASE_URL and the repository variable COLLECTION_ENABLED = true.
+# The collector stops storing by itself after the data cut-off, 1 Dec 2026 08:15 Tashkent (D006).
 on:
-  workflow_dispatch:
-  # schedule:
-  #   - cron: '7,37 * * * *'        # every hour at :07 and :37 (off the start of the hour)
-  #   - cron: '10,25,40 12 * * *'   # extra runs at 17:10, 17:25, 17:40 Tashkent time
+  workflow_dispatch:                # manual run, stored with trigger = 'manual'
+  schedule:
+    - cron: '7,37 * * * *'          # every hour at :07 and :37 (off the start of the hour)
+    - cron: '10,25,40 12 * * *'     # extra runs at 17:10, 17:25, 17:40 Tashkent time
 
 concurrency:
   group: collect
@@ -29,4 +27,5 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-        run: uv run python -m nightwatch.collect --trigger schedule
+          TRIGGER: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'schedule' }}
+        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"

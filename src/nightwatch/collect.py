@@ -58,6 +58,7 @@ def main(argv=None) -> int:
 
     from . import db
     with db.connect(dsn) as conn:
+        db.apply_schema(conn)   # safe to repeat: creates the tables on the first real run only
         run_id = collector.run_once(conn, trigger=args.trigger)
         ok, failed, status = conn.execute(
             "SELECT points_ok, points_failed, http_status FROM collection_runs WHERE run_id = %s",
