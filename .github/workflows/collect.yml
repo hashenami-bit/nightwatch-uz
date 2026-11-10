@@ -3,8 +3,19 @@ name: collect
 # Real collection: approved 28 Oct 2026 (DECISIONS.md D005), switched on 28 Oct 2026 (D007).
 # Needs the repository secret DATABASE_URL and the repository variable COLLECTION_ENABLED = true.
 # The collector stops storing by itself after the data cut-off, 1 Dec 2026 08:15 Tashkent (D006).
+#
+# Two timers start this workflow (DECISIONS.md D008):
+#   1. GitHub's own schedule below. It drops most runs, so it is kept only as a second chance.
+#   2. An external timer that calls workflow_dispatch with trigger = backup at the same slots
+#      (settings in docs/backup_timer.md). Runs from it are stored with trigger = 'backup'.
 on:
-  workflow_dispatch:                # manual run, stored with trigger = 'manual'
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: 'manual = a person started it, backup = the external timer (D008)'
+        type: choice
+        options: [manual, backup]
+        default: manual
   schedule:
     - cron: '7,37 * * * *'          # every hour at :07 and :37 (off the start of the hour)
     - cron: '10,25,40 12 * * *'     # extra runs at 17:10, 17:25, 17:40 Tashkent time
@@ -27,5 +38,5 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-          TRIGGER: ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'schedule' }}
+          TRIGGER: ${{ github.event_name == 'workflow_dispatch' && inputs.trigger || 'schedule' }}
         run: uv run python -m nightwatch.collect --trigger "$TRIGGER"

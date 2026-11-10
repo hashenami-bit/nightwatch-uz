@@ -79,3 +79,31 @@ Each record: date, decision, reason, and the approval it depends on.
 - Actions minutes: about 51 runs × 1 minute per day ≈ 1,530 of the 2,000 free minutes per month.
   Checked again after the first full day.
 - Next check: coverage of the first three nights (29, 30, 31 Oct), reported at Checkpoint 1.
+
+## D008 · 2026-11-10 · GitHub's schedule dropped most runs; external backup timer added
+
+- **What happened.** Checked on 10 Nov 2026: GitHub started only 65 scheduled runs between 28 Oct and
+  10 Nov (4 to 6 per day) instead of about 51 per day. Every run that started succeeded (HTTP 200,
+  10 of 10 points). The gaps between runs were 2 to 11 hours (median about 4.4 hours).
+- **Effect on the data (estimated from the GitHub run times; exact figures come from
+  `collection_runs`).** Nights 29 Oct to 9 Nov have 2 to 6 of the 12 live night hours, and only two
+  days (31 Oct, 4 Nov) have a response in the 16:00–18:00 snapshot window. **None of these 12 nights
+  is a complete night.** The night of 10 Nov cannot be complete either: its morning hours (00–07)
+  were already missed. The stored rows are kept, not deleted, and are reported as incomplete nights.
+- **Coverage of the first three nights (approval point 4):** 29 Oct 4/12, 30 Oct 6/12, 31 Oct 4/12
+  night hours. The 90% planning assumption was wrong for GitHub's schedule.
+- **The check was late.** D007 said coverage would be checked after the first full day. It was first
+  checked on 10 Nov. This is reported as it is.
+- **Change.** An external timer (cron-job.org) starts the same workflow through `workflow_dispatch`
+  at the same slots (:07, :37 and 12:10, 12:25, 12:40 UTC). These runs are stored with trigger
+  `backup`, a value the schema and the protocol (C4, "any backup trigger") already had. GitHub's own
+  schedule stays on as a second chance. Settings: `docs/backup_timer.md`. The access token is not in
+  the repository.
+- **Not changed:** the collector code, the 12-of-12 rule, the live window of 75 minutes, the snapshot
+  rule, the split rule and the data cut-off (D006). Nothing is back-filled from the provider's
+  archive to repair the lost nights.
+- **What is still possible.** First possible complete night: 11 Nov (needs the timer running before
+  00:00 on 11 Nov, Tashkent). Nights 11 to 30 Nov = 20 calendar nights; the approved minimum is 18.
+  At most two more nights may be lost. To be reported to the Module Leader.
+- Actions minutes: about 51 backup runs + about 5 GitHub runs per day ≈ 56 minutes per day.
+- **External timer switched on:** (recorded here with the first `backup` run).

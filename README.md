@@ -42,7 +42,7 @@ The full rules are in `docs/evaluation_protocol.md`. In short:
 | Collector: one request for all ten points, validation, live-window rule, run log, raw payload with SHA-256 | `src/nightwatch/collector.py` |
 | Database writes (parameterised SQL, duplicates skipped) | `src/nightwatch/db.py` |
 | Command line with an off switch | `src/nightwatch/collect.py` |
-| Hourly schedule (written, switched off) | `.github/workflows/collect.yml` |
+| Hourly schedule (on since 28 Oct, D007) with an external backup timer (D008) | `.github/workflows/collect.yml`, `docs/backup_timer.md` |
 | Tests on every push | `.github/workflows/tests.yml`, `tests/` |
 
 ## Run the tests
