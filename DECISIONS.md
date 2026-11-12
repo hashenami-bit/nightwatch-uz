@@ -102,8 +102,24 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Not changed:** the collector code, the 12-of-12 rule, the live window of 75 minutes, the snapshot
   rule, the split rule and the data cut-off (D006). Nothing is back-filled from the provider's
   archive to repair the lost nights.
-- **What is still possible.** First possible complete night: 11 Nov (needs the timer running before
-  00:00 on 11 Nov, Tashkent). Nights 11 to 30 Nov = 20 calendar nights; the approved minimum is 18.
-  At most two more nights may be lost. To be reported to the Module Leader.
+- **What is still possible (written 10 Nov).** First possible complete night: 11 Nov (needs the timer
+  running before 00:00 on 11 Nov, Tashkent). Nights 11 to 30 Nov = 20 calendar nights; the approved
+  minimum is 18. At most two more nights may be lost. To be reported to the Module Leader.
+- **Update 11 Nov.** The external timer was not set up on 10 Nov. GitHub's schedule ran four times
+  between 10 Nov 06:00 UTC and 11 Nov 03:00 UTC, so the morning hours of 11 Nov (00–07 Tashkent) were
+  missed and **the night of 11 Nov cannot be complete either**. First possible complete night:
+  **12 Nov**. Nights 12 to 30 Nov = 19 calendar nights; the approved minimum is 18, so at most one
+  more night may be lost.
 - Actions minutes: about 51 backup runs + about 5 GitHub runs per day ≈ 56 minutes per day.
-- **External timer switched on:** (recorded here with the first `backup` run).
+- **External timer switched on: 11 Nov 2026.** First `backup` run from the timer: 03:15 UTC
+  (08:15 Tashkent, a test signal, GitHub run 42951489273, database run_id 72). First automatic slot:
+  03:37 UTC (08:37 Tashkent, GitHub run 42953936242, run_id 74). Two jobs: `nightwatch hourly` and
+  `nightwatch snapshot` (`docs/backup_timer.md`).
+- **First 25 hours of the timer** (checked 12 Nov 05:08 UTC, from the GitHub run list; exact figures
+  come from `collection_runs`): 55 slots, 55 start signals, each within 11 seconds of its slot.
+  54 runs stored 10 of 10 points. One run (11 Nov 20:37 UTC) was not started by GitHub
+  ("startup failure"); the runs 30 minutes before and after it cover the same hours. In the same
+  period GitHub's own schedule started 5 runs; one of them (11 Nov 07:09 UTC) got no answer from the
+  provider after two attempts and is kept as a failed run.
+- **Night of 11 Nov:** all 12 night hours and the 18:00 snapshot were collected, but it stays an
+  incomplete night because its morning feature hours were missed before the timer started.

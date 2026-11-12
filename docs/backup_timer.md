@@ -9,12 +9,12 @@ Runs started this way are stored with `collection_runs.trigger = 'backup'`.
 
 ## Settings of the external timer (cron-job.org, free plan)
 
-Two jobs with the same request. Time zone of both jobs: **UTC**.
+Two jobs with the same request. Time zone of both jobs: **Asia/Tashkent** (UTC+5, no clock changes).
 
-| Job | Schedule (UTC) | Tashkent time |
-|---|---|---|
-| nightwatch hourly | minutes 7 and 37 of every hour, every day | :07 and :37 |
-| nightwatch snapshot | 12:10, 12:25 and 12:40 every day | 17:10, 17:25, 17:40 |
+| Job | Crontab expression (Asia/Tashkent) | Meaning | Same slots in UTC |
+|---|---|---|---|
+| nightwatch hourly | `7,37 * * * *` | minutes 7 and 37 of every hour, every day | :07 and :37 |
+| nightwatch snapshot | `10,25,40 17 * * *` | 17:10, 17:25 and 17:40 every day | 12:10, 12:25, 12:40 |
 
 Request (the same for both jobs):
 
@@ -33,7 +33,8 @@ A GitHub fine-grained personal access token that can do one thing only:
 
 - Repository access: only `hashenami-bit/nightwatch-uz`
 - Permission: **Actions: Read and write** (nothing else)
-- Expiry: after the data cut-off (D006), for example 15 Dec 2026
+- Expiry: after the data cut-off (D006). The token in use is named `nightwatch-timer-2` and
+  expires on 14 Dec 2026 19:00 UTC
 
 It is kept only in the cron-job.org job settings. Delete the token on GitHub after 1 Dec 2026.
 
