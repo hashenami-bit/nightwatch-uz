@@ -123,3 +123,22 @@ Each record: date, decision, reason, and the approval it depends on.
   provider after two attempts and is kept as a failed run.
 - **Night of 11 Nov:** all 12 night hours and the 18:00 snapshot were collected, but it stays an
   incomplete night because its morning feature hours were missed before the timer started.
+
+## D009 · 2026-11-13 · Provider did not answer about half of the runs; second and third try added
+
+- **What happened.** From 12 Nov 23:37 UTC to 13 Nov 12:07 UTC, 15 of 27 timer runs got no HTTP
+  answer from Open-Meteo after the two attempts inside the collector (`http_status` empty,
+  10 points failed). The timer itself worked: every slot got its start signal. The same request sent
+  from another network at 12:12 UTC was answered in about one second, so the fault seems to be between
+  some GitHub machines and the provider, not the provider as a whole. The stored `error_message` of
+  these runs has the exact error.
+- **Effect so far (from the GitHub run list):** one live hour was lost, 13 Nov 13:00 Tashkent. The
+  day still meets the daytime-feature rules (cloud cover 4 of 5 hours). The night of 12 Nov has all
+  12 live hours, its snapshot and its daytime hours: it is the first night that can be complete.
+- **Change (commit 91dc263).** When a run of the collector fails, the workflow runs the same collector
+  again in a new job on a fresh GitHub machine, up to two more times (`retry1`, `retry2`). Every try
+  is its own row in `collection_runs` with the same trigger and slot; failed tries are kept. The run
+  log now also prints the stored error text.
+- **Not changed:** the request, the validation, the live window of 75 minutes (a retry that arrives
+  later than that is simply not a live value), the 12-of-12 rule, the snapshot rule, the timer slots.
+- Cost: one extra billed minute per retry, only when a retry is needed.
