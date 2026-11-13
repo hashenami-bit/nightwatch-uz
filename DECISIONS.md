@@ -142,3 +142,7 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Not changed:** the request, the validation, the live window of 75 minutes (a retry that arrives
   later than that is simply not a live value), the 12-of-12 rule, the snapshot rule, the timer slots.
 - Cost: one extra billed minute per retry, only when a retry is needed.
+- **Checked the same day.** The error is `ReadTimeout` after 30 seconds (the provider accepted the
+  connection but sent no answer). In the runs of 14:37 and 15:07 UTC the first try timed out and
+  the second try, on a fresh machine about 20 seconds later, stored 10 of 10 points (15:07 UTC:
+  database run_id 215 failed, 216 succeeded).
