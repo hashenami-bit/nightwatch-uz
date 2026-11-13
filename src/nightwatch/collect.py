@@ -60,11 +60,13 @@ def main(argv=None) -> int:
     with db.connect(dsn) as conn:
         db.apply_schema(conn)   # safe to repeat: creates the tables on the first real run only
         run_id = collector.run_once(conn, trigger=args.trigger)
-        ok, failed, status = conn.execute(
-            "SELECT points_ok, points_failed, http_status FROM collection_runs WHERE run_id = %s",
-            (run_id,)).fetchone()
+        ok, failed, status, attempts, error = conn.execute(
+            "SELECT points_ok, points_failed, http_status, attempts, error_message "
+            "FROM collection_runs WHERE run_id = %s", (run_id,)).fetchone()
     print(f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M:%S}Z run {run_id}: "
-          f"status={status} points_ok={ok} points_failed={failed}")
+          f"status={status} points_ok={ok} points_failed={failed} attempts={attempts}")
+    if error:
+        print(f"  error: {error[:300]}")   # same text as collection_runs.error_message
     return 0 if failed == 0 else 1
 
 

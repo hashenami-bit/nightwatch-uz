@@ -8,6 +8,11 @@ name: collect
 #   1. GitHub's own schedule below. It drops most runs, so it is kept only as a second chance.
 #   2. An external timer that calls workflow_dispatch with trigger = backup at the same slots
 #      (settings in docs/backup_timer.md). Runs from it are stored with trigger = 'backup'.
+#
+# Second and third try (DECISIONS.md D009): when the weather service does not answer, the same
+# collector is run again on a fresh GitHub machine, up to two more times. Every try is stored as
+# its own row in collection_runs, including the failed ones. The retry jobs cost minutes only
+# when they are needed.
 on:
   workflow_dispatch:
     inputs:
@@ -24,10 +29,15 @@ concurrency:
   group: collect
   cancel-in-progress: false
 
+env:
+  TRIGGER: ${{ github.event_name == 'workflow_dispatch' && inputs.trigger || 'schedule' }}
+
 jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    outputs:
+      ok: ${{ steps.run.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -35,8 +45,47 @@ jobs:
           enable-cache: true          # faster runs, fewer Actions minutes on a private repo
       - run: uv sync --frozen --no-dev
       - name: Run collector
+        id: run
+        continue-on-error: true       # a failed first try starts the retry job instead of failing the run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-          TRIGGER: ${{ github.event_name == 'workflow_dispatch' && inputs.trigger || 'schedule' }}
+        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
+
+  retry1:
+    needs: collect
+    if: ${{ !cancelled() && needs.collect.outputs.ok != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ok: ${{ steps.run.outcome == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - name: Run collector (second try)
+        id: run
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
+        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
+
+  retry2:
+    needs: [collect, retry1]
+    if: ${{ !cancelled() && needs.collect.outputs.ok != 'true' && needs.retry1.outputs.ok != 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - name: Run collector (third try)   # no continue-on-error: the run is red only if all three tries fail
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
         run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
