@@ -207,4 +207,11 @@ Each record: date, decision, reason, and the approval it depends on.
     retries must be over.
 - **How it runs.** As a second step of the hand-started `nights` workflow.
 - **Tests.** 7 new tests on synthetic data.
-- First run on the real data: _to be filled in._
+- **First run on the real data: 18 Nov 2026, 07:54 UTC** (commit d2ca05b, Actions run 44262516663).
+  1,045 slots from 29 Oct 00:00 to 18 Nov 12:07 Tashkent time: **416 with data, 15 run but no data,
+  614 with no run**. All 614 missing runs are now in `data_quality_log`.
+  - 29 Oct to 10 Nov (GitHub's own timer only, D008): 663 slots, 65 with data, 598 with no run.
+  - 11 Nov: 14 with no run, all before the external timer started (D008).
+  - 12 to 18 Nov (external timer): 331 slots, 314 with data, 15 run but no data (14 of them on
+    13 Nov, before the retry jobs, D009; 1 on 18 Nov), 2 with no run (one on 12 Nov, one on 16 Nov).
+  - None of the slots lost since 12 Nov cost a night: nights 12 to 17 Nov are all complete (D010).
