@@ -42,6 +42,7 @@ The full rules are in `docs/evaluation_protocol.md`. In short:
 | Collector: one request for all ten points, validation, live-window rule, run log, raw payload with SHA-256 | `src/nightwatch/collector.py` |
 | Database writes (parameterised SQL, duplicates skipped) | `src/nightwatch/db.py` |
 | Command line with an off switch | `src/nightwatch/collect.py` |
+| Nights builder: one row per point per night, complete-night rules, coverage report (D010) | `src/nightwatch/nights.py`, `.github/workflows/nights.yml` |
 | Hourly schedule (on since 28 Oct, D007) with an external backup timer (D008) | `.github/workflows/collect.yml`, `docs/backup_timer.md` |
 | Tests on every push | `.github/workflows/tests.yml`, `tests/` |
 
@@ -61,12 +62,22 @@ Check the live API format without storing anything:
 uv run python -m nightwatch.collect --dry-run
 ```
 
+Build the nights table and print the coverage report (needs `DATABASE_URL`; `--report-only`
+stores nothing):
+
+```bash
+uv run python -m nightwatch.nights
+```
+
 ## Timing rules (proposal v3, section 3)
 
 - Cut-off: 18:00 local (13:00 UTC). Only responses **received** by then count for that night.
 - Live value for hour H: taken from the earliest valid response received between H and H + 75 minutes.
 - Runs at minutes 07 and 37 every hour, plus 17:10, 17:25 and 17:40 local.
 - Every run, including failed ones, is written to `collection_runs`.
+- Snapshot: the latest response received from 16:00 to 18:00. Night: the 12 hours from 20:00 to 07:00.
+  A point's night is complete only with the snapshot, all 12 live night hours, the three daytime
+  features and the provider forecast for the 12 hours. A calendar night needs 8 of 10 points.
 
 ## Data source and licence
 

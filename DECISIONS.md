@@ -146,3 +146,35 @@ Each record: date, decision, reason, and the approval it depends on.
   connection but sent no answer). In the runs of 14:37 and 15:07 UTC the first try timed out and
   the second try, on a fresh machine about 20 seconds later, stored 10 of 10 points (15:07 UTC:
   database run_id 215 failed, 216 succeeded).
+
+## D010 · 2026-11-18 · Nights builder: details fixed inside the approved rules
+
+- **What it is.** `src/nightwatch/nights.py` turns the stored hourly rows into one row per point per
+  night in the table `nights`, exactly by proposal v3 section 3. It is written before any model work
+  and it prints counts only, never temperatures, so the test nights stay unopened (protocol C1).
+- **Details the proposal leaves open, fixed now and not changed later:**
+  - Snapshot window: a response **received** from 16:00:00 to 18:00:00 Tashkent time, both ends
+    included ("by 18:00"). The latest one for each point is the snapshot. There is no fall-back to an
+    earlier response if the latest one lacks something.
+  - Daytime features use live values received **before** 18:00.
+  - 3-hour trend: H0 is the latest hourly valid time in the snapshot response that is not later than
+    the response's current time. Trend = temperature at H0 minus temperature at H0 − 3 hours, both
+    from that same response (read from `raw_responses`). If either value is missing or out of range
+    the trend is missing and the location-night is **not complete**, because the trend is one of the
+    approved snapshot features. Nothing is filled in.
+  - Provider forecast: the forecast rows of the snapshot's own run for the 12 night hours. Fewer than
+    12 means no provider minimum and the location-night is not complete (as in the proposal).
+  - A night is built only after 08:30 on D+1 (the 08:15 end of the last live window plus 15 minutes
+    for the last run to be saved). Building again from the same stored data gives the same row.
+  - Incomplete location-nights are stored with `is_complete = false` and the reason is written once
+    to `data_quality_log` (rule `night_incomplete`). `target_min_c` stays empty unless all 12 live
+    hours exist. The `split` column is not set by the builder; it is set once at the cut-off.
+- **Schema.** Three columns added to `nights`: `snapshot_trend_3h_c`, `n_forecast_hours`,
+  `provider_forecast_min_c`, with a rule that a complete night must have all three. They are added
+  with `ADD COLUMN IF NOT EXISTS`, because the table already existed (empty) in the live database.
+  No collected row is changed.
+- **How it runs on the real data.** By hand, with the workflow `.github/workflows/nights.yml`
+  (`gh workflow run nights.yml`). The run log shows the coverage report.
+- **Tests.** 14 new tests on synthetic data, including the cut-off rule: a response received at
+  18:00:12 is never the snapshot, and a value received after 18:00 never reaches a daytime feature.
+- First run on the real data: _to be filled in._

@@ -63,4 +63,14 @@ def ok_session(received_hint: datetime, **kw) -> FakeSession:
     return FakeSession(FakeResponse(200, json.dumps(make_payload(received_hint, **kw))))
 
 
+def clock_at(start, step_seconds=2):
+    """Fake clock: first call = start (request sent), later calls a little later."""
+    state = {"t": start - timedelta(seconds=step_seconds)}
+
+    def tick():
+        state["t"] += timedelta(seconds=step_seconds)
+        return state["t"]
+    return tick
+
+
 UTC = timezone.utc

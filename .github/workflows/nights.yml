@@ -1,0 +1,37 @@
+name: nights
+
+# Builds the `nights` table from the stored collector data and prints the coverage report
+# (DECISIONS.md D010). Started by hand only, so it costs Actions minutes only when it is used:
+# Actions tab -> nights -> Run workflow, or `gh workflow run nights.yml`.
+# It only reads the collected rows. It writes to `nights` and `data_quality_log`.
+on:
+  workflow_dispatch:
+    inputs:
+      report_only:
+        description: 'Print the coverage report only, store nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read          # the job only needs to read the code
+
+concurrency:
+  group: nights
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      # Locked to one exact commit (the v6 tag on 18 Nov 2026), because this job can read DATABASE_URL.
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e   # v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev
+      - name: Build nights and print coverage
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REPORT_ONLY: ${{ inputs.report_only && '--report-only' || '' }}
+        run: uv run python -m nightwatch.nights $REPORT_ONLY

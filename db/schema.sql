@@ -124,6 +124,31 @@ CREATE TABLE IF NOT EXISTS nights (
                                AND afternoon_cloud_pct IS NOT NULL))
 );
 
+-- Added 18 Nov 2026 with the nights builder (DECISIONS.md D010). The table already existed in
+-- the live database, so the new columns and their rule are added here. The checks come first,
+-- so a later run only looks and takes no lock on the table.
+--   snapshot_trend_3h_c      temperature at the snapshot hour minus 3 hours before
+--   n_forecast_hours         night hours covered by the snapshot's forecast
+--   provider_forecast_min_c  needs all 12 forecast hours
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = current_schema() AND table_name = 'nights'
+                      AND column_name = 'provider_forecast_min_c') THEN
+        ALTER TABLE nights
+            ADD COLUMN IF NOT EXISTS snapshot_trend_3h_c numeric(5,2),
+            ADD COLUMN IF NOT EXISTS n_forecast_hours smallint CHECK (n_forecast_hours BETWEEN 0 AND 12),
+            ADD COLUMN IF NOT EXISTS provider_forecast_min_c numeric(5,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'nights_complete_needs_snapshot_parts') THEN
+        ALTER TABLE nights ADD CONSTRAINT nights_complete_needs_snapshot_parts
+            CHECK (NOT is_complete OR (snapshot_trend_3h_c IS NOT NULL AND n_forecast_hours = 12
+                                       AND provider_forecast_min_c IS NOT NULL));
+    END IF;
+EXCEPTION WHEN duplicate_object THEN
+    NULL;   -- another run added it at the same moment
+END $$;
+
 -- Small user input: a low temperature a user measured. No personal data.
 CREATE TABLE IF NOT EXISTS field_reports (
     report_id       bigserial PRIMARY KEY,

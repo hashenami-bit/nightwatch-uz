@@ -1,48 +1,17 @@
 """Integration tests against a throw-away PostgreSQL database. All data is synthetic.
 
-Uses TEST_DATABASE_URL (default: local database nightwatch_test). The database is
-dropped and recreated at the start, so never point this at real data.
+The `conn` fixture (tests/conftest.py) drops and recreates the test database for every test.
 """
 import json
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import psycopg
 import pytest
 
 from nightwatch import collector, config, db
-from tests.fixtures.synthetic import FakeResponse, FakeSession, make_payload
+from tests.fixtures.synthetic import FakeResponse, FakeSession, clock_at, make_payload
 
 UTC = timezone.utc
-
-
-def clock_at(start, step_seconds=2):
-    """Fake clock: first call = start (request sent), later calls a little later."""
-    state = {"t": start - timedelta(seconds=step_seconds)}
-
-    def tick():
-        state["t"] += timedelta(seconds=step_seconds)
-        return state["t"]
-    return tick
-
-
-TEST_DSN = os.environ.get("TEST_DATABASE_URL", "postgresql:///nightwatch_test")
-
-
-@pytest.fixture()
-def conn():
-    name = psycopg.conninfo.conninfo_to_dict(TEST_DSN).get("dbname", "")
-    assert "test" in name, "refusing to reset a database whose name does not contain 'test'"
-    admin = TEST_DSN.rsplit("/", 1)[0] + "/postgres"
-    try:
-        with psycopg.connect(admin, autocommit=True) as a:
-            a.execute(f'DROP DATABASE IF EXISTS "{name}"')
-            a.execute(f'CREATE DATABASE "{name}"')
-    except psycopg.OperationalError as exc:
-        pytest.skip(f"PostgreSQL not available: {exc}")
-    with db.connect(TEST_DSN) as c:
-        db.apply_schema(c)
-        yield c
 
 
 def count(conn, table):
