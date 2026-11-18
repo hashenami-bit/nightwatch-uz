@@ -215,3 +215,13 @@ Each record: date, decision, reason, and the approval it depends on.
   - 12 to 18 Nov (external timer): 331 slots, 314 with data, 15 run but no data (14 of them on
     13 Nov, before the retry jobs, D009; 1 on 18 Nov), 2 with no run (one on 12 Nov, one on 16 Nov).
   - None of the slots lost since 12 Nov cost a night: nights 12 to 17 Nov are all complete (D010).
+
+## D012 · 2026-11-18 · Collection gap reported to the Module Leader; cut-off question asked
+
+- Email sent on 18 Nov 2026, 13:05 Tashkent time, as a reply in the approval thread of 28 Oct. It
+  reports the lost nights (D008), the fixes (D008, D009), the real counts (D010, D011) and asks whether
+  the last included night may move from 30 Nov to 2 Dec (final collection 3 Dec, 08:15).
+- **Nothing is changed until his written reply.** The cut-off in D006 and `config.FINAL_COLLECTION_UTC`
+  stay as they are. If he says no, 30 Nov stays. The date is not moved again after that.
+- Reply: _to be filled in._
+
