@@ -177,4 +177,14 @@ Each record: date, decision, reason, and the approval it depends on.
   (`gh workflow run nights.yml`). The run log shows the coverage report.
 - **Tests.** 14 new tests on synthetic data, including the cut-off rule: a response received at
   18:00:12 is never the snapshot, and a value received after 18:00 never reaches a daytime feature.
-- First run on the real data: _to be filled in._
+- **Frozen rows.** A row whose `split` is already set is never changed by a later build.
+- **First run on the real data: 18 Nov 2026, 06:47 UTC** (commit b5f1300, Actions run 44253875618).
+  20 finished nights, 29 Oct to 17 Nov. **Complete calendar nights: 6** (12, 13, 14, 15, 16 and
+  17 Nov), each with 10 of 10 points complete. Nights 29 Oct to 10 Nov: 0 of 10 points (2 to 5 of the
+  12 night hours, too few daytime hours, and a snapshot on only three evenings: 31 Oct, 4 Nov and
+  10 Nov). Night 11 Nov: 0 of 10 points for one reason only, the morning minimum has 2 of 8 hours.
+  This matches what was expected from the run list in D008 and D009.
+- **What is still possible.** 13 nights are left up to the last included night, 30 Nov (D006):
+  at most 19 complete nights. The approved minimum is 18, so at most one more night may be lost.
+- **Collector checked after the change.** The next timer run (18 Nov 07:07 UTC, database run_id 513)
+  stored 10 of 10 points with the new schema in place.
