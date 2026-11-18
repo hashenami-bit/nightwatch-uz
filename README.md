@@ -43,6 +43,7 @@ The full rules are in `docs/evaluation_protocol.md`. In short:
 | Database writes (parameterised SQL, duplicates skipped) | `src/nightwatch/db.py` |
 | Command line with an off switch | `src/nightwatch/collect.py` |
 | Nights builder: one row per point per night, complete-night rules, coverage report (D010) | `src/nightwatch/nights.py`, `.github/workflows/nights.yml` |
+| Missing-run check: the timer's slots compared with `collection_runs` (D011) | `src/nightwatch/slots.py` |
 | Hourly schedule (on since 28 Oct, D007) with an external backup timer (D008) | `.github/workflows/collect.yml`, `docs/backup_timer.md` |
 | Tests on every push | `.github/workflows/tests.yml`, `tests/` |
 
@@ -67,6 +68,12 @@ stores nothing):
 
 ```bash
 uv run python -m nightwatch.nights
+```
+
+Compare the timer's slots with the stored runs and log every missing run once:
+
+```bash
+uv run python -m nightwatch.slots
 ```
 
 ## Timing rules (proposal v3, section 3)

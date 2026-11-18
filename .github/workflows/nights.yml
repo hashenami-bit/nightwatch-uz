@@ -1,7 +1,7 @@
 name: nights
 
 # Builds the `nights` table from the stored collector data and prints the coverage report
-# (DECISIONS.md D010). Started by hand only, so it costs Actions minutes only when it is used:
+# (DECISIONS.md D010), then checks the timer slots for missing runs (D011). Started by hand only, so it costs Actions minutes only when it is used:
 # Actions tab -> nights -> Run workflow, or `gh workflow run nights.yml`.
 # It only reads the collected rows. It writes to `nights` and `data_quality_log`.
 on:
@@ -35,3 +35,8 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           REPORT_ONLY: ${{ inputs.report_only && '--report-only' || '' }}
         run: uv run python -m nightwatch.nights $REPORT_ONLY
+      - name: Check the schedule for missing runs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REPORT_ONLY: ${{ inputs.report_only && '--report-only' || '' }}
+        run: uv run python -m nightwatch.slots $REPORT_ONLY

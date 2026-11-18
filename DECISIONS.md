@@ -188,3 +188,23 @@ Each record: date, decision, reason, and the approval it depends on.
   at most 19 complete nights. The approved minimum is 18, so at most one more night may be lost.
 - **Collector checked after the change.** The next timer run (18 Nov 07:07 UTC, database run_id 513)
   stored 10 of 10 points with the new schema in place.
+
+## D011 · 2026-11-18 · Missing-run check
+
+- **What it is.** `src/nightwatch/slots.py` does what proposal v3 section 6 promises: it compares the
+  schedule with `collection_runs` and logs every missing run in `data_quality_log`. It changes no
+  collected row and no rule.
+- **Definitions, fixed now:**
+  - Slot: minutes 07 and 37 of every hour plus 12:10, 12:25 and 12:40 UTC, 51 a day, the same list the
+    collector uses (`config.HOURLY_MINUTES`, `config.EXTRA_SLOTS_UTC`).
+  - A run belongs to the latest slot at or before the time its request was sent (`scheduled_for`,
+    as stored by the collector since the first run). Manual runs belong to no slot.
+  - Three groups: **data** (a run for the slot stored at least one point), **no data** (a run started
+    but no try stored anything; those failed runs are already in `collection_runs`), **no run**
+    (nothing started). Only "no run" is a missing run and is logged, once, with rule `missing_run`.
+  - Slots are counted from 00:00 Tashkent time on 29 Oct 2026, the first counted day (D007), to the
+    final collection time (D006). A slot is judged 45 minutes after its time, when its run and both
+    retries must be over.
+- **How it runs.** As a second step of the hand-started `nights` workflow.
+- **Tests.** 7 new tests on synthetic data.
+- First run on the real data: _to be filled in._
