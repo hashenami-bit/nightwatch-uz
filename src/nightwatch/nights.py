@@ -74,7 +74,7 @@ def windows(night_date: date) -> Windows:
 
 
 def last_included_night() -> date:
-    """The night before the final collection time (DECISIONS.md D006)."""
+    """The night before the final collection time (DECISIONS.md D006, D013)."""
     return config.FINAL_COLLECTION_UTC.astimezone(TZ).date() - timedelta(days=1)
 
 

@@ -11,7 +11,7 @@ every slot in one of three groups:
            `data_quality_log` (rule `missing_run`).
 
 Slots are counted from 00:00 Tashkent time on the first counted day (D007) to the final
-collection time (D006). Manual runs belong to no slot. Details are in DECISIONS.md D011.
+collection time (D013). Manual runs belong to no slot. Details are in DECISIONS.md D011.
 """
 from __future__ import annotations
 

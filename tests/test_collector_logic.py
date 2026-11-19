@@ -60,5 +60,5 @@ def test_check_row_catches_dew_point_above_temperature():
 
 
 def test_collection_stops_after_the_fixed_cut_off():
-    assert not collect.collection_closed(datetime(2026, 12, 1, 3, 15, tzinfo=UTC))   # 08:15 Tashkent: last moment
-    assert collect.collection_closed(datetime(2026, 12, 1, 3, 16, tzinfo=UTC))
+    assert not collect.collection_closed(datetime(2026, 12, 3, 3, 15, tzinfo=UTC))   # 08:15 Tashkent, 3 Dec: last moment
+    assert collect.collection_closed(datetime(2026, 12, 3, 3, 16, tzinfo=UTC))

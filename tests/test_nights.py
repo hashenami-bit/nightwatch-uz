@@ -44,7 +44,7 @@ def test_windows_follow_the_proposal():
     assert W.night[-1] == datetime(2026, 11, 13, 2, 0, tzinfo=UTC)      # 07:00 next day
     assert W.cutoff == datetime(2026, 11, 12, 13, 0, tzinfo=UTC)        # 18:00 Tashkent
     assert W.final_at == datetime(2026, 11, 13, 3, 15, tzinfo=UTC)      # 08:15 next day
-    assert nights.last_included_night() == date(2026, 11, 30)           # D006
+    assert nights.last_included_night() == date(2026, 12, 2)            # D013
 
 
 def test_complete_night_from_full_data():

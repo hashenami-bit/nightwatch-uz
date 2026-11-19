@@ -73,8 +73,14 @@ collected weather-model data for ten fixed monitored points.
     for the last 07:00 value.
 - It is checked against the published LMS report deadline so that enough time remains for analysis,
   reproducibility checks and the report.
-- **Fixed on 28 Oct 2026 (D006): last included night 30 Nov 2026; final collection time 1 Dec 2026,
-  08:15 Asia/Tashkent.** LMS report deadline: 14 Dec 2026.
+- Fixed on 28 Oct 2026 (D006): last included night 30 Nov 2026; final collection time 1 Dec 2026,
+  08:15 Asia/Tashkent. LMS report deadline: 14 Dec 2026, 17:00.
+- **Moved once, on 19 Nov 2026, with the Module Leader's written approval (D013): last included
+  night 2 Dec 2026; final collection time 3 Dec 2026, 08:15 Asia/Tashkent.** Reason: a scheduler fault
+  lost the nights of 29 Oct to 11 Nov (D008). The request was made before any model was fitted or any
+  evaluation result existed. He wrote: "This is the final collection cutoff." The same eligibility rules
+  apply to every night, including the two added ones, and coverage is checked by schedule slot after
+  every night (`docs/approval/2026-11-19-module-leader-cutoff-extension.md`).
 - Note: under the 20% rule, extra nights mainly add training nights; the test count grows only
   slowly (k = 5 up to N = 27, then 6 up to N = 32).
 
@@ -98,7 +104,7 @@ collected weather-model data for ten fixed monitored points.
 
 | Item | Value |
 |---|---|
-| Last included night / final collection time | 30 Nov 2026 / 1 Dec 2026 08:15 Asia/Tashkent (fixed 28 Oct, D006) |
+| Last included night / final collection time | 2 Dec 2026 / 3 Dec 2026 08:15 Asia/Tashkent (D013, approved 19 Nov; originally 30 Nov / 1 Dec, D006) |
 | N complete calendar nights, k test nights | |
 | Training nights (dates) / test nights (dates) | |
 | Selected model and settings | |

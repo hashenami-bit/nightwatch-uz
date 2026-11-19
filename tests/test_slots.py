@@ -86,4 +86,4 @@ def test_a_fresh_slot_is_not_judged_yet_and_report_only_stores_nothing(conn):
 
 def test_no_slot_is_expected_after_the_final_collection_time(conn):
     result = slots.check(conn, config.FINAL_COLLECTION_UTC + timedelta(days=3), save=False)
-    assert result[-1][0] == datetime(2026, 12, 1, 3, 7, tzinfo=UTC)          # 08:07 Tashkent, 1 Dec
+    assert result[-1][0] == datetime(2026, 12, 3, 3, 7, tzinfo=UTC)          # 08:07 Tashkent, 3 Dec

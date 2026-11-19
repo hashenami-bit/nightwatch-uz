@@ -36,7 +36,7 @@ A GitHub fine-grained personal access token that can do one thing only:
 - Expiry: after the data cut-off (D006). The token in use is named `nightwatch-timer-2` and
   expires on 14 Dec 2026 19:00 UTC
 
-It is kept only in the cron-job.org job settings. Delete the token on GitHub after 1 Dec 2026.
+It is kept only in the cron-job.org job settings. Delete the token on GitHub after 3 Dec 2026.
 
 ## How to check that it works
 
@@ -49,5 +49,5 @@ There should be a new run within a minute of every :07 and :37, with the event
 
 ## Switching it off
 
-Disable both jobs on cron-job.org after 1 Dec 2026 08:15 Tashkent. The collector refuses to store
-anything after that time anyway (D006).
+Disable both jobs on cron-job.org after 3 Dec 2026 08:15 Tashkent. The collector refuses to store
+anything after that time anyway (D013).

@@ -10,8 +10,10 @@ conditions and it is not a frost warning.
 ## Status
 
 **Approved on 28 Oct 2026** by the Module Leader as a small exploratory study
-(`docs/approval/2026-10-28-module-leader-approval.md`). Data cut-off fixed before collection (`DECISIONS.md`, D006):
-last included night **30 Nov 2026**, final collection **1 Dec 2026 08:15** Asia/Tashkent. Real collection
+(`docs/approval/2026-10-28-module-leader-approval.md`). Data cut-off: last included night **2 Dec 2026**, final collection **3 Dec 2026 08:15** Asia/Tashkent.
+It was fixed before collection as 30 Nov / 1 Dec (`DECISIONS.md`, D006) and moved once, with the Module
+Leader's written approval of 19 Nov 2026, after a scheduler fault lost the first 14 nights (D013,
+`docs/approval/2026-11-19-module-leader-cutoff-extension.md`). Real collection
 starts once the hosted database is connected. Until then the
 code is tested with synthetic data only (`tests/fixtures`).
 See `DECISIONS.md` for the approval record and every later change.

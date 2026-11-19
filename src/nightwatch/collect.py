@@ -49,7 +49,7 @@ def main(argv=None) -> int:
         print("Collection is switched off (COLLECTION_ENABLED is not 'true').")
         return 0
     if collection_closed(datetime.now(timezone.utc)):
-        print(f"Collection closed at the data cut-off {config.FINAL_COLLECTION_UTC:%Y-%m-%d %H:%M}Z (D006).")
+        print(f"Collection closed at the data cut-off {config.FINAL_COLLECTION_UTC:%Y-%m-%d %H:%M}Z (D013).")
         return 0
     dsn = os.environ.get("DATABASE_URL")
     if not dsn:

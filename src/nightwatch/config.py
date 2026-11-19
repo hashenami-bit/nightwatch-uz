@@ -27,9 +27,11 @@ REQUEST_TIMEOUT_S = 30
 # First counted night (DECISIONS.md D007): collection was switched on during 28 Oct 2026.
 FIRST_NIGHT = date(2026, 10, 29)
 
-# Data cut-off (DECISIONS.md D006, fixed before collection): last included night 30 Nov 2026,
-# final collection 1 Dec 2026 08:15 Asia/Tashkent = 03:15 UTC. Never moved because of results.
-FINAL_COLLECTION_UTC = datetime(2026, 12, 1, 3, 15, tzinfo=timezone.utc)
+# Data cut-off: last included night 2 Dec 2026, final collection 3 Dec 2026 08:15 Asia/Tashkent
+# = 03:15 UTC. Fixed before collection as 30 Nov / 1 Dec (DECISIONS.md D006) and moved once, with the
+# Module Leader's written approval of 19 Nov 2026, because of the scheduler fault (D013).
+# This is the final cut-off. It is never moved again.
+FINAL_COLLECTION_UTC = datetime(2026, 12, 3, 3, 15, tzinfo=timezone.utc)
 
 MAX_ATTEMPTS = 2
 RETRY_WAIT_S = 10
