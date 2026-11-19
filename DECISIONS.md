@@ -66,6 +66,8 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Expected split counts** (k = max(5, round(0.2 × N))): from 29 Oct there are 33 calendar nights.
   At 90% about N = 30 → 24 training / 6 test; at 70% about N = 23 → 18 training / 5 test. The minimum of
   18 complete nights is reached even at about 55% completeness.
+- **Changed on 19 Nov 2026 with the Module Leader's written approval: see D013.** The dates above are
+  the original ones and are kept here as the record.
 
 ## D007 · 2026-10-28 · Assessed collection switched on
 
@@ -223,5 +225,41 @@ Each record: date, decision, reason, and the approval it depends on.
   the last included night may move from 30 Nov to 2 Dec (final collection 3 Dec, 08:15).
 - **Nothing is changed until his written reply.** The cut-off in D006 and `config.FINAL_COLLECTION_UTC`
   stay as they are. If he says no, 30 Nov stays. The date is not moved again after that.
-- Reply: _to be filled in._
+- Reply: **Approved** on 19 Nov 2026, 09:28 Tashkent time. See D013.
 
+## D013 · 2026-11-19 · Data cut-off moved once, with written approval: last night 2 Dec, collection ends 3 Dec 08:15
+
+- **Approval.** Sanjar Bekov, Module Leader, by University email on **19 November 2026, 09:28 Tashkent
+  time**, in reply to my request of 18 November (D012). Copied unchanged in
+  `docs/approval/2026-11-19-module-leader-cutoff-extension.md`.
+- **Original dates (D006, fixed 28 Oct 2026):** last included night 30 November 2026; final collection
+  time 1 December 2026, 08:15 Asia/Tashkent.
+- **Revised dates:** last included night **2 December 2026** (20:00 on 2 Dec to 07:00 on 3 Dec); final
+  collection time **3 December 2026, 08:15 Asia/Tashkent** (03:15 UTC). His words: "This is the final
+  collection cutoff." It is not moved again, whatever the results.
+- **Reason.** The scheduler fault of 29 Oct to 11 Nov (D008): GitHub's own timer started about one run
+  in ten, so those 14 nights cannot be complete. The request was sent before any model was fitted and
+  before any evaluation result existed; the nights builder prints counts only (D010).
+- **Deadline.** The LMS deadline stays 14 December 2026, 17:00. That leaves 11 days after the cut-off.
+- **This entry was written and committed before the cut-off was changed in the code**, as he asked.
+  The code change (`config.FINAL_COLLECTION_UTC`, the tests, the protocol and the README) is the next
+  commit.
+- **His three points and how each is applied:**
+  1. *Same eligibility rules for every night.* `nights.py` applies one set of rules to all nights,
+     including 1 and 2 Dec: 12 of 12 live night hours, the three daytime features, the snapshot
+     received 16:00 to 18:00. Incomplete nights are stored with `is_complete = false` and the reason is
+     in `data_quality_log` (rule `night_incomplete`). The builder reads live values only
+     (`is_live AND NOT is_backfill`), so nothing from the provider's archive can enter the sample.
+  2. *Coverage by schedule slot.* `slots.py` counts every slot once, however many tries it had; every
+     try stays in `collection_runs`. Slots with no run are reported apart from slots where a run
+     started but stored nothing (D011). **New duty: coverage is checked after every night until
+     3 Dec.** The `nights` workflow (builder and slot check) is run each morning after 08:30 Tashkent
+     time; its run log is the record. Until an automatic start is added it is started by hand.
+  3. *Chronological hold-out.* Unchanged from `docs/evaluation_protocol.md` C1: analysis code is built
+     and tested on the first 13 complete nights only; the configuration and the procedure are frozen
+     (tag `protocol-frozen`) before any held-out outcome is opened. A calendar night counts once
+     toward the minimum of 18 (`nights.is_calendar_complete`: at least 8 of 10 points). If fewer than
+     18 qualify, the real count is reported and the analysis stays descriptive (C2).
+- **Expected counts.** Complete so far: 6 (12 to 17 Nov). Nights 18 Nov to 2 Dec: 15 more, so at most
+  21. With k = max(5, round(0.2 × N)), any N from 18 to 21 gives 5 test nights and 13 to 16 training
+  nights.
