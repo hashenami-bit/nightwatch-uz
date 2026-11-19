@@ -255,6 +255,12 @@ Each record: date, decision, reason, and the approval it depends on.
      started but stored nothing (D011). **New duty: coverage is checked after every night until
      3 Dec.** The `nights` workflow (builder and slot check) is run each morning after 08:30 Tashkent
      time; its run log is the record. Until an automatic start is added it is started by hand.
+     **Automatic since 19 Nov 2026:** the collector workflow runs the same two checks as an extra step
+     in the 08:37 and 09:07 Tashkent slots (03:37 and 04:07 UTC), after the night's last live window has
+     closed at 08:15. The step is skipped in every other run and cannot fail a collection run. The
+     hand-started `nights` workflow stays for extra checks. First check under this rule, by hand:
+     19 Nov 2026, 04:37 UTC, Actions run 44459595664: 7 complete calendar nights (12 to 18 Nov);
+     18 Nov had 48 slots with data, 3 with a run but no data, 0 with no run.
   3. *Chronological hold-out.* Unchanged from `docs/evaluation_protocol.md` C1: analysis code is built
      and tested on the first 13 complete nights only; the configuration and the procedure are frozen
      (tag `protocol-frozen`) before any held-out outcome is opened. A calendar night counts once
