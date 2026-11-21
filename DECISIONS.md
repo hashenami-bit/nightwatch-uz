@@ -296,5 +296,6 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Collection back:** the next timer run, 21 Nov 18:07 UTC (23:07 Tashkent, database run_id 686),
   stored 10 of 10 points. Night 22 Nov starts counting at 19:00 UTC, so it is not affected.
 - **Not changed:** the collector, the rules, the schedule, the cut-off (D013). Nothing is back-filled.
-- To be reported to the Module Leader with the next coverage update (his point 2 of 19 Nov).
+- **Reported to the Module Leader** on 21 Nov 2026, 23:13 Tashkent time, as a reply in the approval
+  thread (his point 2 of 19 Nov). It says the repository is now public and that no reply is needed.
 
