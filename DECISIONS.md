@@ -79,6 +79,7 @@ Each record: date, decision, reason, and the approval it depends on.
   HTTP 200, 10 of 10 points stored, database run_id 1. The whole job took 22 seconds (1 billed minute).
 - **First counted night: 29 Oct 2026**, the first night whose whole day is collected (D006).
 - Actions minutes: about 51 runs × 1 minute per day ≈ 1,530 of the 2,000 free minutes per month.
+  (This estimate left out the retry jobs and the backup runs; the minutes ran out on 20 Nov, see D014.)
   Checked again after the first full day.
 - Next check: coverage of the first three nights (29, 30, 31 Oct), reported at Checkpoint 1.
 
@@ -269,3 +270,31 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Expected counts.** Complete so far: 6 (12 to 17 Nov). Nights 18 Nov to 2 Dec: 15 more, so at most
   21. With k = max(5, round(0.2 × N)), any N from 18 to 21 gives 5 test nights and 13 to 16 training
   nights.
+
+## D014 · 2026-11-21 · Free Actions minutes ran out; repository made public
+
+- **What happened.** From 20 Nov 2026, 19:07 UTC (21 Nov, 00:07 Tashkent) GitHub refused to start every
+  job of the private repository: "The job was not started because recent account payments have failed
+  or your spending limit needs to be increased." The 2,000 free Actions minutes of the month were used
+  up (about 55 timer runs a day, each billed as at least one minute, plus the retry jobs). The external
+  timer kept sending its signal at every slot, but no collector started, so nothing reached the
+  database and no row was written to `collection_runs`. The missing-run check therefore counts these
+  slots as **no run**. Found on 21 Nov at 17:40 UTC, when the student noticed the failed runs.
+- **Effect.** No collection for about 22.6 hours (20 Nov 19:07 UTC to 21 Nov 17:43 UTC):
+  - night 20 Nov: 4 of 12 night hours (00:00 to 07:00 on 21 Nov missing), not complete;
+  - night 21 Nov: no morning hours and no evening snapshot, cannot be complete.
+  - Complete calendar nights so far: 8 (12 to 19 Nov). Nights left, 22 Nov to 2 Dec: 11. **At most
+    19 complete nights; the approved minimum is 18, so at most one more night may be lost.**
+- **Separate from this:** on 20 Nov the slots 05:37 and 07:07 UTC failed on all three tries because the
+  provider did not answer (D009); they are "run but no data" and cost no night.
+- **Fix.** The student chose to make the repository **public** on 21 Nov 2026, 17:43 UTC: GitHub runs
+  jobs of public repositories without using the minute allowance. The secret `DATABASE_URL` and the
+  variable `COLLECTION_ENABLED` stay secret and unchanged; the history was scanned with gitleaks first
+  (no leaks). The repository holds the student's name and ID and the Module Leader's emails in
+  `docs/approval/`; the student accepted that. A store-nothing check run at 17:46 UTC (Actions run
+  44931649449) started normally.
+- **Collection back:** the next timer run, 21 Nov 18:07 UTC (23:07 Tashkent, database run_id 686),
+  stored 10 of 10 points. Night 22 Nov starts counting at 19:00 UTC, so it is not affected.
+- **Not changed:** the collector, the rules, the schedule, the cut-off (D013). Nothing is back-filled.
+- To be reported to the Module Leader with the next coverage update (his point 2 of 19 Nov).
+
