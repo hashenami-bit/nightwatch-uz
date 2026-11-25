@@ -126,7 +126,14 @@ def test_night_differences_average_the_points_of_each_night():
 
 def test_metrics_by_hand():
     out = stats.metrics([0, 0, 0, 0], [1, -1, 2, 2])
-    assert out == {"n": 4, "mae": 1.5, "rmse": math.sqrt(2.5), "bias": 1.0}
+    assert out == {"n": 4, "mae": 1.5, "rmse": math.sqrt(2.5), "bias": 1.0, "r2": None}   # y all equal
+
+
+def test_r_squared_by_hand():
+    # y = 1, 2, 3 (mean 2, spread 1 + 0 + 1 = 2); errors 0.5, -0.5, 0 -> squared sum 0.5
+    assert stats.metrics([1, 2, 3], [1.5, 1.5, 3])["r2"] == pytest.approx(1 - 0.5 / 2)
+    assert stats.metrics([1, 2, 3], [3, 2, 1])["r2"] == pytest.approx(1 - 8 / 2)       # worse than the mean
+    assert stats.metrics([0.1, 0.1, 0.1], [0.2, 0.0, 0.1])["r2"] is None              # no rounding rest
 
 
 def test_one_value_per_night():

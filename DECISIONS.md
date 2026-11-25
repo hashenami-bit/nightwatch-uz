@@ -405,3 +405,38 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Tests.** 22 new tests (`tests/test_alerts.py`, `tests/test_robustness.py`), including a hand-worked
   confusion matrix (TP 2, FP 2, FN 1, TN 2: precision 0.5, recall 2/3, F1 4/7) and a check that the model
   without the daytime features gives the same predictions when those features are changed.
+
+## D017 · 2026-11-25 · Extra metrics, residual checks and report charts
+
+- **What it is.** The rest of the metrics and the charts listed in proposal v3 section 8, built and
+  tested on made-up data only. No real outcome was read to build them.
+  - `stats.metrics` now also gives **R-squared** = 1 − (sum of squared errors) / (sum of squared
+    deviations of y from its mean). It is "none" when every y is the same, and it can be below 0.
+  - `src/nightwatch/diagnostics.py`: errors by night in date order; **bias per calendar week**
+    (Monday to Sunday; bias = mean of prediction − outcome); and the **residual checks**
+    (residual = outcome − prediction):
+    - normality: Shapiro–Wilk on the location-night residuals (at least 3 values);
+    - equal variance: Breusch–Pagan in Koenker's form, the squared residual regressed on the
+      prediction, LM = n · R², χ² with 1 degree of freedom;
+    - independence: lag-1 and lag-2 autocorrelation of the night-mean residual, using only nights
+      exactly 1 or 2 calendar days apart (the same rule as the DM test).
+    The ten points of one night share that night's weather, so the location-night residuals are not
+    independent: these p-values are a rough guide only, and the output says so.
+  - `src/nightwatch/charts.py`: eight static PNG charts for the report: (1) distribution of night
+    minimums, (2) snapshot dew-point gap against the overnight drop (Q2, training nights only),
+    (3) error by point (box plot), (4) predicted against collected, (5) complete points per night
+    (collector completeness over time; reads counts only), (6) cold nights by point, (7) d_t in date
+    order, (8) nightly MAE of the model and P0 in date order.
+  - matplotlib is added to the `analysis` group; the collector's install is unchanged.
+- **Chart rules.** Real calendar dates on every time axis, so a missing night shows as a gap (the
+  line chart breaks there instead of joining across it). Blue for the model, orange for P0; in the
+  d_t chart blue = model better (d < 0), red = P0 better (d > 0). The 5 °C limit is drawn where it
+  matters. Text is never in a series colour.
+- **When they run.** Charts 5 and the training-night charts (1, 2, 6 on training nights) may be drawn
+  during development from the first 13 complete nights only. Charts with test-night outcomes (3, 4,
+  7, 8, and 1 and 6 if test nights are included) are drawn only after the protocol freeze, from the
+  final-evaluation script (not built yet).
+- **Tests.** 12 new tests (`tests/test_diagnostics.py`, `tests/test_charts.py`, one in
+  `tests/test_stats.py`), including R-squared and Breusch–Pagan by hand, bias per week across a Monday,
+  a check that every chart is drawn and saved as a PNG, and a clear error instead of a crash when
+  there is nothing to draw. A night with d = 0 is drawn gray (a tie).

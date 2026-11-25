@@ -149,7 +149,15 @@ def block_bootstrap(d: pd.Series, n_boot: int = 10_000, seed: int = 0) -> dict:
 
 
 def metrics(y, pred) -> dict:
-    """MAE (primary), RMSE (second check) and bias (mean of prediction minus outcome)."""
-    error = np.asarray(pred, dtype=float) - np.asarray(y, dtype=float)
+    """MAE (primary), RMSE (second check), bias (mean of prediction minus outcome) and R-squared.
+
+    R-squared = 1 - sum of squared errors / sum of squared deviations of y from its mean. It is None
+    when every y is the same. It can be below 0 when a method is worse than the mean of y.
+    """
+    y = np.asarray(y, dtype=float)
+    error = np.asarray(pred, dtype=float) - y
+    # all-equal y gives no spread; ptp (max - min) is exact, the mean of decimals may not be
+    spread = 0.0 if y.size == 0 or np.ptp(y) == 0 else float(np.sum((y - y.mean()) ** 2))
     return {"n": int(error.size), "mae": float(np.mean(np.abs(error))),
-            "rmse": float(np.sqrt(np.mean(error ** 2))), "bias": float(np.mean(error))}
+            "rmse": float(np.sqrt(np.mean(error ** 2))), "bias": float(np.mean(error)),
+            "r2": None if spread == 0 else float(1 - np.sum(error ** 2) / spread)}
