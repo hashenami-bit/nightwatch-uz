@@ -364,3 +364,44 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Tests.** 41 new tests on synthetic data (`tests/test_features.py`, `tests/test_models.py`,
   `tests/test_stats.py`), including the night limit, the cut-off rule, preprocessing inside the fold and
   the hand-worked DM example.
+
+## D016 · 2026-11-25 · Alert scores and robustness checks: details fixed inside the approved rules
+
+- **What it is.** The cold-night alert scores (Q4, objective O4) and the robustness checks of proposal
+  v3 section 8, built and tested on made-up data only. No real outcome was read to build them.
+  - `src/nightwatch/alerts.py`: confusion matrix, precision, recall and F1 by location-night, the
+    count of cold location-nights and of distinct cold calendar nights, the table by calendar night,
+    the "descriptive only" rule and the dashboard categories.
+  - `src/nightwatch/robustness.py`: the five robustness checks below.
+  - `models.make` takes an optional shorter list of numeric features (M1 and M2 only), used only for
+    the check without the daytime features. The default models are unchanged.
+- **Fixed in the proposal and applied as written.** Event: night minimum ≤ 5 °C. Alert: predicted
+  minimum ≤ 5 °C. Categories: Low above 8 °C, Medium above 5 up to 8 °C, High at 5 °C or below. O4
+  target: recall ≥ 0.80 with precision next to it. Q4 has no significance test.
+- **Details the proposal leaves open, fixed now and not changed later:**
+  - *Scores with no denominator* (precision with no alerts, recall with no cold nights) are reported as
+    "none", never as 0. F1 = 2 TP / (2 TP + FP + FN), so it is 0 when cold nights exist but no alert was
+    right, and "none" only with no cold nights and no alerts.
+  - *Descriptive only* when the scored rows have fewer than 10 cold location-nights or fewer than 3
+    distinct cold calendar nights; then the O4 target is not judged (neither met nor missed).
+  - *Leave one point out.* For each of the ten points in turn, the selected model is refitted with the
+    same settings on the training nights without that point, and scored on the test nights of the
+    other nine points, next to persistence P0 on the same rows (MAE, MAE reduction, mean d_t).
+    It shows whether the result depends on one point.
+  - *Back-filled records.* The collector stores live values only and nothing has been back-filled
+    (D014), so this check counts back-filled rows in `observations` and back-fill runs in
+    `collection_runs` for the analysis period. If both are 0, the set with back-filled records is the primary set and the check is reported as "no
+    back-filled records".
+  - *Cold-night limit 3 and 8 °C.* Alert scores of the selected model and of P0 at 3, 5 and 8 °C on the
+    same test rows; 5 °C stays the primary limit.
+  - *Without the daytime features.* The selected model with the same settings, refitted on the same
+    training nights without day maximum, morning minimum and afternoon cloud cover, scored on the same
+    test rows; the report gives both MAEs and the change. It refuses P0 or P1, which use no daytime
+    features (only M1 or M2 can be selected).
+  - *Worst nights.* The 3 test nights with the largest model MAE, with bias, P0 MAE, cold points and the
+    coldest value.
+- **When it runs.** Once, after the protocol freeze, on the final training and test nights, from the
+  final-evaluation script (not built yet). Nothing here changes the selected model or its settings.
+- **Tests.** 22 new tests (`tests/test_alerts.py`, `tests/test_robustness.py`), including a hand-worked
+  confusion matrix (TP 2, FP 2, FN 1, TN 2: precision 0.5, recall 2/3, F1 4/7) and a check that the model
+  without the daytime features gives the same predictions when those features are changed.

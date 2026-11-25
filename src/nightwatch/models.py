@@ -60,20 +60,24 @@ class PointDrop:
         return X["snap_temp_c"].to_numpy(dtype=float) - drops
 
 
-def ridge(alpha: float) -> Pipeline:
-    """M1: point indicators (one column per point) and scaled numeric features, then ridge."""
+def ridge(alpha: float, numeric: list[str] = NUMERIC) -> Pipeline:
+    """M1: point indicators (one column per point) and scaled numeric features, then ridge.
+
+    `numeric` is the full fixed list except in the robustness check without the daytime features.
+    """
     prep = ColumnTransformer([
         ("point", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CATEGORICAL),
-        ("scale", StandardScaler(), NUMERIC),
+        ("scale", StandardScaler(), list(numeric)),
     ])
     return Pipeline([("prep", prep), ("model", Ridge(alpha=alpha))])
 
 
-def boosting(max_depth: int, learning_rate: float, max_iter: int) -> Pipeline:
+def boosting(max_depth: int, learning_rate: float, max_iter: int,
+             numeric: list[str] = NUMERIC) -> Pipeline:
     """M2: the point as a native categorical feature (column 0), numeric features unchanged."""
     prep = ColumnTransformer([
         ("point", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1), CATEGORICAL),
-        ("keep", "passthrough", NUMERIC),
+        ("keep", "passthrough", list(numeric)),
     ])
     model = HistGradientBoostingRegressor(
         max_depth=max_depth, learning_rate=learning_rate, max_iter=max_iter, min_samples_leaf=10,
@@ -92,6 +96,9 @@ GRIDS: dict[str, list[dict]] = {
 BUILDERS = {"P0": lambda: Persistence(), "P1": lambda: PointDrop(), "M1": ridge, "M2": boosting}
 
 
-def make(name: str, params: dict | None = None):
-    """A new, unfitted model."""
-    return BUILDERS[name](**(params or {}))
+def make(name: str, params: dict | None = None, numeric: list[str] | None = None):
+    """A new, unfitted model. `numeric` (M1 and M2 only) replaces the numeric feature list."""
+    params = dict(params or {})
+    if numeric is not None and name in ("M1", "M2"):
+        params["numeric"] = list(numeric)
+    return BUILDERS[name](**params)
