@@ -1,0 +1,31 @@
+name: develop
+
+# Development run on the real data (DECISIONS.md D015): cross-validation of P0, P1, M1 and M2 on the
+# first 13 complete calendar nights only (protocol C1). Later nights are never read. It prints counts
+# and cross-validation MAEs and writes nothing to the database.
+# Started by hand only: Actions tab -> develop -> Run workflow, or `gh workflow run develop.yml`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read          # the job only needs to read the code
+
+concurrency:
+  group: develop
+  cancel-in-progress: false
+
+jobs:
+  develop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      # Locked to one exact commit (the v6 tag on 18 Nov 2026), because this job can read DATABASE_URL.
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e   # v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --no-dev --group analysis
+      - name: Cross-validate on the development nights
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: uv run python -m nightwatch.develop

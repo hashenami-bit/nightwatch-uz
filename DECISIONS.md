@@ -299,3 +299,63 @@ Each record: date, decision, reason, and the approval it depends on.
 - **Reported to the Module Leader** on 21 Nov 2026, 23:13 Tashkent time, as a reply in the approval
   thread (his point 2 of 19 Nov). It says the repository is now public and that no reply is needed.
 
+
+## D015 · 2026-11-25 · Modelling code: details fixed inside the approved rules
+
+- **What it is.** The analysis code of proposal v3 section 8 and protocol C1–C2, built and tested on
+  synthetic data only. No real outcome was read to build it.
+  - `src/nightwatch/features.py`: the feature table;
+  - `src/nightwatch/models.py`: P0, P1, M1 (ridge) and M2 (HistGradientBoosting) with the fixed settings;
+  - `src/nightwatch/cv.py`: time-ordered cross-validation and the M1/M2 choice rule;
+  - `src/nightwatch/stats.py`: d_t, Diebold–Mariano with the HLN correction, the 2-night block
+    bootstrap, the "no p-value" rules, MAE/RMSE/bias;
+  - `src/nightwatch/develop.py` and the hand-started workflow `develop.yml`: cross-validation on the
+    development nights, printing counts and CV MAEs only, writing nothing.
+  - Libraries (numpy, pandas, scipy, scikit-learn) are in a separate dependency group `analysis`. The
+    hourly collector (`uv sync --no-dev`) does not install them, so collection is not changed.
+- **Which nights may be read.** `features.load(conn, "development")` first lists the dates of the
+  complete calendar nights (no temperatures), keeps the first 13, and selects rows only up to the 13th.
+  Later nights are never selected, so their outcomes cannot be printed or used. `"final"` mode and
+  `features.final_split` raise an error before the final collection time (3 Dec 2026, 08:15 Tashkent).
+- **Details the proposal leaves open, fixed now and not changed later:**
+  - *Features.* Snapshot temperature, relative humidity, wind speed and cloud cover come from the
+    current-conditions row of the snapshot run (`current_conditions` joined on `nights.snapshot_run_id`);
+    dew-point gap = snapshot temperature − snapshot dew point; the 3-hour trend is
+    `nights.snapshot_trend_3h_c` (from the snapshot's raw response, D010); day maximum, morning minimum
+    and afternoon cloud cover come from `nights`; the point is `location_id`. The provider forecast is in
+    the table only for Q3 and is never a feature.
+  - *Primary set.* `is_complete AND calendar_night_complete`. A location-night whose snapshot lacks one
+    of the values above is left out with a stated reason, never filled in. The loader refuses (error)
+    any snapshot received after 18:00.
+  - *P1.* Drop = snapshot temperature − night minimum. Mean drop per point on the training rows only.
+    A point with no training rows uses the mean drop of all training rows.
+  - *M1.* One indicator column per point (unknown point = all zeros) and standardised numeric features,
+    then ridge. *M2.* The point as a native categorical feature; early stopping off; random_state 0.
+    Preprocessing is part of each model, so it is fitted on the training rows of every fit only.
+  - *CV.* The last 8 training nights in date order form 4 folds of 2 nights; each fold trains on all
+    nights with a date before its first night (expanding window). Fold MAE = MAE over the fold's
+    location-nights; CV MAE = mean of the 4 fold MAEs. Best setting per model = lowest CV MAE (on an exact
+    tie the earlier setting in the fixed list). M2 is chosen only if its CV MAE is more than 0.05 °C below
+    M1's; exactly 0.05 counts as "within", so M1.
+  - *Bootstrap.* Candidate blocks are each test night with the next one in date order, the last wrapping
+    to the first. A block is usable only if its two dates are exactly one day apart, so the wrap is never
+    usable and in practice the blocks are the neighbour pairs. Each resample draws ceil(n/2) usable blocks
+    with replacement, joins them, keeps the first n values and takes the mean; 10,000 resamples, seed 0;
+    interval = 2.5% and 97.5% points. A test night with no neighbour is in no block and is never drawn:
+    the report states how many nights the blocks cover.
+  - *No p-value / no interval.* If n < 5, V ≤ 0 or fewer than 3 usable blocks, neither is given and the
+    reasons are returned (C2). Computer rounding can leave a tiny positive V where the exact value is 0,
+    so V ≤ 10⁻¹² counts as V ≤ 0. If some test nights are in no block, the bootstrap result carries a
+    note saying so.
+  - *Autocorrelation.* Lag 1 and lag 2 use only pairs exactly 1 or 2 calendar days apart, divided by n.
+  - *Final split.* k = max(5, round(N / 5)), the last k complete nights are test.
+- **Hand-worked test (required before the freeze).** `tests/test_stats.py::test_hand_worked_diebold_mariano`:
+  5 test nights on 1, 2, 3, 5 and 6 Dec with d = 1, −1, 2, 0, 3. By hand: mean 1, γ0 = 2, γ1 = −0.8
+  (the pair 3–5 Dec crosses the gap and is not used), V = 1.2, DM = 2.041, DM* = √(10/3) = 1.826,
+  t with 4 df, p = 0.142. A second test shows that wrongly joining 3 and 5 Dec would give V = 1.0.
+- **Not done yet.** No run on the real data (needs a push and `develop.yml`). Not built: the alert
+  metrics, the robustness checks, `model_runs` rows, and the final-evaluation script. The final split,
+  the model choice, the `protocol-frozen` tag and the test predictions wait for the cut-off (C1, D013).
+- **Tests.** 41 new tests on synthetic data (`tests/test_features.py`, `tests/test_models.py`,
+  `tests/test_stats.py`), including the night limit, the cut-off rule, preprocessing inside the fold and
+  the hand-worked DM example.
