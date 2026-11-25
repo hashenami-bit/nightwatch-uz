@@ -353,7 +353,12 @@ Each record: date, decision, reason, and the approval it depends on.
   5 test nights on 1, 2, 3, 5 and 6 Dec with d = 1, −1, 2, 0, 3. By hand: mean 1, γ0 = 2, γ1 = −0.8
   (the pair 3–5 Dec crosses the gap and is not used), V = 1.2, DM = 2.041, DM* = √(10/3) = 1.826,
   t with 4 df, p = 0.142. A second test shows that wrongly joining 3 and 5 Dec would give V = 1.0.
-- **Not done yet.** No run on the real data (needs a push and `develop.yml`). Not built: the alert
+- **First development run on the real data: 25 Nov 2026, about 06:15 UTC** (commit 5c93989, Actions
+  run 45559042063). It read 11 development nights (12 to 19 and 22 to 24 Nov; 13 are allowed) and 110
+  location-nights; none was left out. Fold 1 trains on 3 nights. CV MAE: P0 6.36 °C, P1 1.70 °C, best M1
+  (alpha 1) 1.44 °C, best M2 (max_depth 2, learning_rate 0.05, max_iter 100) 1.71 °C, so the rule
+  would pick M1. This is provisional, used for development only, and is not the final choice (C1).
+- **Not done yet.** Not built: the alert
   metrics, the robustness checks, `model_runs` rows, and the final-evaluation script. The final split,
   the model choice, the `protocol-frozen` tag and the test predictions wait for the cut-off (C1, D013).
 - **Tests.** 41 new tests on synthetic data (`tests/test_features.py`, `tests/test_models.py`,
