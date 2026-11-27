@@ -84,12 +84,11 @@ def last_readable_night(conn, purpose: str, now: datetime | None = None) -> date
     raise ValueError(f"unknown purpose {purpose!r}")
 
 
-def build_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
-    """Turn the joined database rows into the feature table. Reads no database.
+def feature_frame(raw: pd.DataFrame) -> pd.DataFrame:
+    """The feature columns for the joined database rows, with nothing left out. Reads no database.
 
-    Returns the table and a list of reasons for location-nights left out. A location-night whose
-    snapshot lacks one of the measures is left out, never filled in (proposal v3 section 3).
-    Raises if a snapshot was received after the 18:00 cut-off: that would be a leak.
+    Shared by the feature table and the dashboard (D018), so both use the same rules. Raises if a
+    snapshot was received after the 18:00 cut-off: that would be a leak.
     """
     late = raw[raw["snapshot_received_at"] > raw["features_cutoff_utc"]]
     if len(late):
@@ -109,7 +108,17 @@ def build_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     table["snap_trend_3h_c"] = num["snapshot_trend_3h_c"]
     for column in ("day_max_temp_c", "morning_min_temp_c", "afternoon_cloud_pct", PROVIDER, TARGET):
         table[column] = num[column]
+    return table
 
+
+def build_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Turn the joined database rows into the feature table. Reads no database.
+
+    Returns the table and a list of reasons for location-nights left out. A location-night whose
+    snapshot lacks one of the measures is left out, never filled in (proposal v3 section 3).
+    Raises if a snapshot was received after the 18:00 cut-off: that would be a leak.
+    """
+    table = feature_frame(raw)
     missing = table[NUMERIC + [TARGET]].isna().any(axis=1)
     reasons = [f"night {r.night_date} point {r.location_id}: a feature value is missing, left out"
                for r in table[missing].itertuples()]

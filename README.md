@@ -49,6 +49,7 @@ The full rules are in `docs/evaluation_protocol.md`. In short:
 | Modelling: feature table, P0/P1 baselines, ridge (M1) and gradient boosting (M2), time-ordered CV, Diebold–Mariano and block bootstrap (D015) | `src/nightwatch/features.py`, `models.py`, `cv.py`, `stats.py` |
 | Development run: CV on the first 13 complete nights only, prints CV MAEs, writes nothing (D015) | `src/nightwatch/develop.py`, `.github/workflows/develop.yml` |
 | Hourly schedule (on since 28 Oct, D007) with an external backup timer (D008) | `.github/workflows/collect.yml`, `docs/backup_timer.md` |
+| Dashboard (Streamlit) and small API (FastAPI) with the field-report form, provisional model from the first 13 nights only (D018) | `app/dashboard.py`, `src/nightwatch/board.py`, `src/nightwatch/api.py` |
 | Tests on every push | `.github/workflows/tests.yml`, `tests/` |
 
 ## Run the tests
@@ -86,6 +87,22 @@ first 13 complete calendar nights and writes nothing):
 ```bash
 uv run python -m nightwatch.develop
 ```
+
+## Run the dashboard and the API
+
+Both need `DATABASE_URL`. For the dashboard you can instead put it in `.streamlit/secrets.toml`
+as `DATABASE_URL = "..."` (this file is git-ignored; never commit it).
+
+```bash
+uv run streamlit run app/dashboard.py
+```
+
+```bash
+uv run uvicorn nightwatch.api:app --port 8000
+```
+
+The API's own documentation is then at http://localhost:8000/docs. To show the page as it was at
+another time (for a daytime demo), set for example `NIGHTWATCH_SHOW_TIME=2026-11-27T21:00+05:00`.
 
 ## Timing rules (proposal v3, section 3)
 

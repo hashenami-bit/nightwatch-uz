@@ -154,16 +154,21 @@ def is_calendar_complete(rows: list[dict]) -> bool:
     return sum(r["is_complete"] for r in rows) >= MIN_COMPLETE_POINTS
 
 
-def build_night(conn, night_date: date) -> list[dict]:
-    """Read the stored rows for one night and return ten summaries, one per point."""
+def build_night(conn, night_date: date, features_only: bool = False) -> list[dict]:
+    """Read the stored rows for one night and return ten summaries, one per point.
+
+    features_only (the dashboard, D018): read live values only up to 16:00 on day D, so no night
+    temperature is ever read; the night part of the summary is then empty (no target).
+    """
     w = windows(night_date)
+    last_hour = w.daytime[-1] if features_only else w.night[-1]
 
     live = defaultdict(dict)
     for loc, observed_at, received_at, temp, cloud in conn.execute(
             """SELECT location_id, observed_at, response_received_at, temperature_c, cloud_cover_pct
                  FROM observations
                 WHERE is_live AND NOT is_backfill AND observed_at BETWEEN %s AND %s""",
-            (w.morning[0], w.night[-1])):
+            (w.morning[0], last_hour)):
         live[loc][observed_at] = (temp, cloud, received_at)
 
     # The cut-off rule: only a response RECEIVED from 16:00 to 18:00 can be the snapshot.

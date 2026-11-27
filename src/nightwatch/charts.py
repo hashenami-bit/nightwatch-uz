@@ -13,7 +13,7 @@ series color. Real calendar dates are kept on time axes, so missing nights show 
 """
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import sys
 from pathlib import Path
 
@@ -27,6 +27,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from . import alerts, config  # noqa: E402
+from .nights import finished_nights  # noqa: E402
 
 SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
@@ -169,11 +170,19 @@ def predicted_vs_collected(pred: pd.DataFrame, label: str = "") -> plt.Figure:
 
 # ---------- 5. collector completeness over time ----------
 
-def completeness_table(conn) -> pd.DataFrame:
-    """Complete points per night and whether the calendar night is complete. Counts only."""
+def completeness_table(conn, now: datetime | None = None) -> pd.DataFrame:
+    """Complete points per night and whether the calendar night is complete. Counts only.
+
+    Only nights that have ended are counted, so a dashboard placeholder for tonight (D018) is
+    never shown as a built night.
+    """
+    finished = finished_nights(now or datetime.now(timezone.utc))
+    if not finished:
+        return pd.DataFrame(columns=["night_date", "complete_points", "calendar_complete"])
     rows = conn.execute(
         """SELECT night_date, count(*) FILTER (WHERE is_complete), bool_or(calendar_night_complete)
-             FROM nights GROUP BY night_date ORDER BY night_date""").fetchall()
+             FROM nights WHERE night_date <= %s GROUP BY night_date ORDER BY night_date""",
+        (finished[-1],)).fetchall()
     return pd.DataFrame(rows, columns=["night_date", "complete_points", "calendar_complete"])
 
 

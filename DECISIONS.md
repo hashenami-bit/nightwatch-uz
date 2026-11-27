@@ -440,3 +440,73 @@ Each record: date, decision, reason, and the approval it depends on.
   `tests/test_stats.py`), including R-squared and Breusch–Pagan by hand, bias per week across a Monday,
   a check that every chart is drawn and saved as a PNG, and a clear error instead of a crash when
   there is nothing to draw. A night with d = 0 is drawn gray (a tie).
+
+## D018 · 2026-11-27 · Dashboard and API: details fixed inside the approved rules
+
+- **What it is.** The dashboard and small API of proposal v3 section 9 (Checkpoint 4), built and
+  tested on made-up data only. No real outcome was read to build them.
+  - `src/nightwatch/board.py`: the data for both (no web code). `app/dashboard.py`: the Streamlit
+    page. `src/nightwatch/api.py`: FastAPI with `GET /health`, `GET /night`, `GET /field-reports`,
+    `POST /field-reports`.
+  - `features.feature_frame` is split out of `features.build_table`, so the dashboard builds its
+    features with exactly the same code. The feature table itself is unchanged.
+- **Provisional model (protocol C1).** Chosen with the same CV rule (`cv.choose`) and fitted on the
+  first 13 complete calendar nights only (`features.load(conn, "development")`). The 13th complete
+  night was 26 Nov, so this model is now fixed. Later nights' outcomes are never read: the night
+  query selects `NULL` instead of `target_min_c`, and a test changes the outcomes of later nights
+  and checks the model does not change.
+- **Range.** The 10th to 90th percentile of the chosen model's cross-validation errors (outcome minus
+  prediction) on the development nights, added to the prediction. It says "80% of the development
+  errors fell inside". It is not the final accuracy, and no accuracy figure is shown for any later
+  night.
+- **Which night.** Night D is shown from 18:10 Tashkent on day D (cut-off 18:00 plus 10 minutes so
+  the last snapshot run has finished saving) until 18:10 on D + 1. After the cut-off the page stays
+  on the last included night, 2 Dec 2026.
+- **Placeholder row.** A prediction needs a `nights` row (foreign key). The nights builder writes a
+  row only after the night has ended, so the live page writes a features-only placeholder for night
+  D: the snapshot and daytime features, the provider forecast, `target_min_c` NULL, `n_live_hours`
+  0, `is_complete` and `calendar_night_complete` false. It is built with
+  `nights.build_night(features_only=True)`, which reads live values only up to 16:00 on day D, so
+  no night temperature is ever read. It is written only for a counted night (29 Oct to 2 Dec) and
+  only from 18:10 on day D by the real clock. It uses `ON CONFLICT DO NOTHING`, so it never changes
+  an existing row, and it writes nothing to the quality log. The builder later replaces it with the
+  real row by its own rules (D010); the `night_id` stays, so stored predictions stay linked. A
+  placeholder is never counted as a complete night, and the completeness chart
+  (`charts.completeness_table`) now counts only nights that have ended.
+- **Predictions.** Stored once per night and point with purpose `provisional_dashboard` and
+  protocol version `provisional-dev13`; the page shows the stored value, rounded to 0.1 °C, and the
+  category is taken from that shown value (so 5.04 shows as 5.0 and High). The range is shown only
+  when the stored value came from the current provisional model. They are never used in the
+  evaluation.
+- **Field reports.** Point (1 to 10), night (from 29 Oct 2026 to today), measured low (−50 to
+  60 °C, the database check) and a method from a fixed list (thermometer, weather station, other).
+  No free text, so no names or contact details can be entered. Shown on the page and in the API,
+  never used in the evaluation.
+- **Data health.** Last run that stored all 10 points, slots with data in the last 24 hours
+  (judged 45 minutes after the slot, as in D011, and never after the final collection time), complete calendar nights so far and nights still
+  to collect. Counts only, no temperatures.
+- **Wording on the page.** The note from proposal v3 section 9 ("weather-model values for one fixed
+  point, not measurements of a farm, and this is not a frost warning"), the provisional wording, and
+  the Open-Meteo credit (CC BY 4.0).
+- **Demo setting.** `NIGHTWATCH_SHOW_TIME` shows the page as at a given time (for a daytime demo;
+  a time with no offset is read as Tashkent time). It only changes which night is shown, and in
+  this mode nothing is written (no placeholder, no stored prediction): a night with no row shows
+  nothing, and a missing prediction is worked out and shown without storing it. A yellow line on
+  the page says the mode is on. Field reports added by hand are still saved.
+- **Safety (security check, 27 Nov).** All SQL is parameterised; text that reaches raw HTML is
+  escaped; the page listens on this computer only (`server.address = "localhost"`) and never shows
+  error details in the browser (`client.showErrorDetails = "none"`), so the database host cannot
+  appear on screen; a database error shows a short message instead. The database address lives in
+  `DATABASE_URL` or the git-ignored `.streamlit/secrets.toml`. The API runs on 127.0.0.1 only.
+- **Look.** Atkinson Hyperlegible font (easy to read), cool light background, one chart: the
+  predicted minimum per point with its range, the provider forecast, and the 5 °C and 8 °C lines.
+  Category colours green / amber / red always come with the written category.
+- **Install.** New `app` dependency group (streamlit 1.67 or newer, fastapi, uvicorn, httpx), part of `dev`. The
+  collector install (`uv sync --no-dev`) is unchanged.
+- **Tests.** 32 new tests (`tests/test_board.py`, `tests/test_api.py`), including: the night switch
+  at 18:10 and the stop at 2 Dec; later nights' outcomes cannot change the model; predictions are
+  stored once with purpose `provisional_dashboard`; the placeholder has no outcome and the builder
+  replaces it; the features-only build reads no night hours; no placeholder before 18:10 or outside
+  the counted nights; demo mode writes nothing; the completeness chart ignores tonight's
+  placeholder; a point with no snapshot gets a reason, not a number; field-report checks; the new
+  record appears in the API list; the Streamlit page runs.

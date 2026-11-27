@@ -1,0 +1,15 @@
+[theme]
+base = "light"
+primaryColor = "#22314F"
+backgroundColor = "#F4F6F9"
+secondaryBackgroundColor = "#E6EAF0"
+textColor = "#17233B"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+address = "localhost"   # only this computer can open the page (no "Network URL")
+
+[client]
+showErrorDetails = "none"   # never show a traceback (it could hold the database host) in the browser
