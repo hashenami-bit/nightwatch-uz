@@ -28,4 +28,4 @@ jobs:
       - name: Cross-validate on the development nights
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: uv run python -m nightwatch.develop
+        run: uv run --no-sync python -m nightwatch.develop

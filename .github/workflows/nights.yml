@@ -34,9 +34,9 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           REPORT_ONLY: ${{ inputs.report_only && '--report-only' || '' }}
-        run: uv run python -m nightwatch.nights $REPORT_ONLY
+        run: uv run --no-sync python -m nightwatch.nights $REPORT_ONLY
       - name: Check the schedule for missing runs
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           REPORT_ONLY: ${{ inputs.report_only && '--report-only' || '' }}
-        run: uv run python -m nightwatch.slots $REPORT_ONLY
+        run: uv run --no-sync python -m nightwatch.slots $REPORT_ONLY

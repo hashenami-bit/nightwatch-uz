@@ -50,7 +50,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
+        run: uv run --no-sync python -m nightwatch.collect --trigger "$TRIGGER"
       # Coverage check after every night (DECISIONS.md D013, Module Leader's point 2). It rides on the
       # runs of the 08:37 and 09:07 Tashkent slots (03:37 and 04:07 UTC), after the night's last live
       # window has closed at 08:15. It builds the nights table and checks the timer slots; the report
@@ -64,8 +64,8 @@ jobs:
           hour=$(date -u +%-H)
           minute=$(date -u +%-M)
           if { [ "$hour" -eq 3 ] && [ "$minute" -ge 37 ]; } || { [ "$hour" -eq 4 ] && [ "$minute" -lt 30 ]; }; then
-            uv run python -m nightwatch.nights
-            uv run python -m nightwatch.slots
+            uv run --no-sync python -m nightwatch.nights
+            uv run --no-sync python -m nightwatch.slots
           else
             echo "Not the morning slot: no coverage check in this run."
           fi
@@ -89,7 +89,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
+        run: uv run --no-sync python -m nightwatch.collect --trigger "$TRIGGER"
 
   retry2:
     needs: [collect, retry1]
@@ -106,4 +106,4 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           COLLECTION_ENABLED: ${{ vars.COLLECTION_ENABLED }}
-        run: uv run python -m nightwatch.collect --trigger "$TRIGGER"
+        run: uv run --no-sync python -m nightwatch.collect --trigger "$TRIGGER"
