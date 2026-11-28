@@ -19,6 +19,7 @@ Which nights may be read (protocol C1):
   their outcomes are never read. This is the only mode allowed before the data cut-off.
 - `final`: all complete calendar nights up to the last included night. Refused before the final
   collection time (3 Dec 2026, 08:15 Tashkent, D013).
+- `final_training`: the training nights of the final split only (D019). Also refused before then.
 """
 from __future__ import annotations
 
@@ -76,11 +77,17 @@ def last_readable_night(conn, purpose: str, now: datetime | None = None) -> date
     if purpose == "development":
         dates = complete_calendar_nights(conn)[:DEVELOPMENT_NIGHTS]
         return dates[-1] if dates else None
-    if purpose == "final":
+    if purpose in ("final", "final_training"):
         if now < config.FINAL_COLLECTION_UTC:
             raise PermissionError("the final feature table is locked until the final collection time "
                                   f"{config.FINAL_COLLECTION_UTC:%Y-%m-%d %H:%M} UTC (D013)")
-        return last_included_night()
+        if purpose == "final":
+            return last_included_night()
+        # final_training (D019): only up to the last training night, so selection never reads a
+        # test night's outcome (protocol C1 step 2).
+        dates = [d for d in complete_calendar_nights(conn) if d <= last_included_night()]
+        training, _ = final_split(dates, now)
+        return training[-1]
     raise ValueError(f"unknown purpose {purpose!r}")
 
 

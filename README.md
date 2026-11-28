@@ -50,6 +50,7 @@ The full rules are in `docs/evaluation_protocol.md`. In short:
 | Development run: CV on the first 13 complete nights only, prints CV MAEs, writes nothing (D015) | `src/nightwatch/develop.py`, `.github/workflows/develop.yml` |
 | Hourly schedule (on since 28 Oct, D007) with an external backup timer (D008) | `.github/workflows/collect.yml`, `docs/backup_timer.md` |
 | Dashboard (Streamlit) and small API (FastAPI) with the field-report form, provisional model from the first 13 nights only (D018) | `app/dashboard.py`, `src/nightwatch/board.py`, `src/nightwatch/api.py` |
+| Final-evaluation script: split, selection on training nights, freeze checks, test predictions once, all results and charts (D019) | `src/nightwatch/final.py` |
 | Tests on every push | `.github/workflows/tests.yml`, `tests/` |
 
 ## Run the tests
@@ -103,6 +104,37 @@ uv run uvicorn nightwatch.api:app --port 8000
 
 The API's own documentation is then at http://localhost:8000/docs. To show the page as it was at
 another time (for a daytime demo), set for example `NIGHTWATCH_SHOW_TIME=2026-11-27T21:00+05:00`.
+
+## The final evaluation (3 Dec 2026, once only)
+
+Needs `DATABASE_URL` (or `.streamlit/secrets.toml`). Rehearse first; this reads only the first 13
+complete nights and writes nothing:
+
+```bash
+uv run --frozen python -m nightwatch.final practice
+```
+
+On 3 Dec **after 08:30** Tashkent time, in this order (protocol C1, D019). `select` and `evaluate`
+show the database and ask you to type `yes`:
+
+```bash
+uv run --frozen python -m nightwatch.final select
+```
+
+```bash
+git add docs/frozen_config.json docs/evaluation_protocol.md && git commit -m "Freeze the protocol (D019)" && git tag protocol-frozen && git push && git push origin protocol-frozen
+```
+
+```bash
+uv run --frozen python -m nightwatch.final evaluate
+```
+
+The results are then in `results/final/` (`report.md`, `results.json`, `tables/`, `figures/`). If
+anything stops after the predictions were stored, do not delete them; remake the results with:
+
+```bash
+uv run --frozen python -m nightwatch.final report
+```
 
 ## Timing rules (proposal v3, section 3)
 

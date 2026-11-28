@@ -510,3 +510,72 @@ Each record: date, decision, reason, and the approval it depends on.
   the counted nights; demo mode writes nothing; the completeness chart ignores tonight's
   placeholder; a point with no snapshot gets a reason, not a number; field-report checks; the new
   record appears in the API list; the Streamlit page runs.
+
+## D019 · 2026-11-27 · Final-evaluation script: details fixed inside the approved rules
+
+- **What it is.** `src/nightwatch/final.py`, the single script of protocol C1, built and tested on
+  made-up data only before the cut-off. No real outcome was read to build it. It has three steps:
+  - `python -m nightwatch.final select` (C1 steps 1 and 2): refused before **08:30** Tashkent on
+    3 Dec 2026. The last window closes at 08:15, but the nights builder builds a night only 15 minutes
+    later, so before 08:30 the last night would be missing from the split. It runs the builder once
+    more and checks that 2 Dec was built, counts the complete calendar nights N up to 2 Dec, makes
+    the split k = max(5, round(N / 5)) (the last k are test), and cross-validates and chooses the
+    model on the training nights only. It loads the new `features.load(conn, "final_training")`, which selects
+    rows only up to the last training night, so no test-night outcome is ever loaded. It writes
+    `docs/frozen_config.json` (split, selected model and settings, best M1 and M2 with CV MAE, every
+    CV result, feature list, alert rule, Q2, and a SHA-256 of the training table) and fills section F
+    of `docs/evaluation_protocol.md`. It refuses to run if the frozen file already exists, and
+    `nights.split` refuses a different split.
+  - By hand (C1 step 3): commit those two files (and this script), tag the commit
+    `protocol-frozen` and push. The commit hash is printed in `results/final/report.md` and recorded
+    in this log after `evaluate` (a commit cannot hold its own hash, and any later edit before
+    `evaluate` would move HEAD off the tag).
+  - `python -m nightwatch.final evaluate` (C1 step 4): refused unless HEAD is the `protocol-frozen`
+    commit with no changed tracked file, the frozen file, the protocol and this script are in that
+    commit and the frozen file equals the committed one, `nights.split` matches the frozen file,
+    the complete nights in the database are exactly the frozen training + test nights, the training
+    table still has the frozen SHA-256, and no `final_evaluation` prediction exists yet (once only).
+    It then fits P0, P1 and the best M1 and M2 on the training nights, predicts the test nights, and
+    **stores the predictions** (rounded to 0.01 °C as the column holds them; purpose
+    `final_evaluation`, protocol version = the tagged commit) and one `model_runs` row per model
+    **before any result is worked out**. The results are then made from the stored rows, so every
+    figure can be recomputed from the database. `results/final/` gets `report.md`, `results.json`
+    and the CSV tables first, then the eight charts (a chart that fails is listed as not drawn and
+    stops nothing).
+  - `python -m nightwatch.final report`: remakes `results/final/` from the stored predictions. It
+    predicts nothing and writes nothing to the database, so it is the safe way back after a crash
+    (for example a lost connection) or a fix to the report code.
+  - `select` and `evaluate` print the database name and host (never the password) and ask for
+    "yes"; a database whose name contains "test" is refused.
+- **What the results hold.** MAE, RMSE, bias and R² for P0, P1, M1 and M2 and for the provider
+  forecast; Q1 (selected model against P0: every d_t, DM with HLN, bootstrap, lag-1 and lag-2
+  autocorrelation, and the same with squared error as the second check); O3 (MAE reduction against
+  the 15% target, with the bootstrap interval); Q2 (Pearson correlation of the dew-point gap and the
+  overnight drop, training nights only); Q3 (selected model against the provider forecast, same
+  tests); Q4/O4 (confusion matrix, precision, recall, F1, table by night, for the model and P0);
+  robustness (D016) and residual checks (D017). The C1 wording and the C2 "exploratory" sentence are
+  printed next to every test.
+- **Practice mode** (`python -m nightwatch.final practice`, for 1–2 Dec). The same sequence on the first
+  13 complete nights only, which development may read (C1). Their last 4 stand in for test nights,
+  because cross-validation needs more than 8 training nights. It writes nothing to the database or to
+  `docs/`; output goes to `results/practice/` (git-ignored). It is a rehearsal and its numbers are not
+  results. With 4 pretend test nights C2 gives no p-value, so the p-value path is exercised by the
+  tests instead (5 synthetic test nights).
+- **Database address.** `DATABASE_URL`, or the same git-ignored `.streamlit/secrets.toml` as the
+  dashboard (D018).
+- **One thread for gradient boosting.** The package sets `OMP_NUM_THREADS=1` before scikit-learn
+  loads. On this Mac the 8 OpenMP threads mostly waited for each other on these small tables: the
+  model grid took 18.4 s with them and 2.6 s with one. The M2 predictions of all 8 settings were
+  checked to be exactly identical (difference 0.0), so no result changes.
+- **Code review (27 Nov).** The 08:30 rule, the write-nothing-until-checked order, the extra
+  freeze checks, the `report` step and the database prompt above came from an independent review.
+- **Tests.** 22 new tests (`tests/test_final.py`) on 19 synthetic nights shaped like the real ones
+  (12 Nov to 2 Dec without 20 and 21 Nov → 14 training, 5 test): locked before the cut-off; the
+  training table stops at the last training night; wild test-night outcomes do not change the
+  selection; the split and section F are written; select runs once; a different split is refused;
+  evaluate stores 4 × 50 predictions and 4 model runs, writes the report and 8 charts, and refuses a
+  second run; evaluate refuses a commit that is not the tag, changed files, changed training data or
+  a changed split; practice writes nothing and never reads nights after the 13th; select is refused at 08:20 and
+  writes nothing on its own; a missing or changed committed file, or a night complete outside the
+  split, stops evaluate; after a crash `report` remakes the results from the kept predictions; the
+  report's MAE equals the MAE recomputed from the stored rows; a test database is refused.

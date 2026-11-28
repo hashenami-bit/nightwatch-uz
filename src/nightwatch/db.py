@@ -11,6 +11,18 @@ MEASURES = ("temperature_c", "relative_humidity_pct", "dew_point_c", "wind_speed
             "cloud_cover_pct", "precipitation_mm", "pressure_hpa")
 
 
+def dsn_from_env_or_secrets() -> str | None:
+    """DATABASE_URL from the environment, else from the git-ignored .streamlit/secrets.toml (D018)."""
+    import os
+    import tomllib
+    if os.environ.get("DATABASE_URL"):
+        return os.environ["DATABASE_URL"]
+    secrets = SCHEMA_FILE.parents[1] / ".streamlit" / "secrets.toml"
+    if secrets.exists():
+        return tomllib.loads(secrets.read_text()).get("DATABASE_URL")
+    return None
+
+
 def connect(dsn: str) -> psycopg.Connection:
     return psycopg.connect(dsn)
 
